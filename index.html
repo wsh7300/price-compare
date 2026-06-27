@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产品价格比价工具 — 原价 · 教育优惠 · 国补</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f5f7;
+  --surface: #fff;
+  --border: #e0e0e0;
+  --text: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --accent: #0071e3;
+  --save-green: #34c759;
+  --save-bg: #e8f8ed;
+  --edu-tag: #5956e9;
+  --subsidy-tag: #e8572a;
+  --price-gray: #86868b;
+  --radius: 10px;
+}
+html { font-size: 15px; }
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 24px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.header-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
+}
+.header h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 240px;
+}
+.header-controls input,
+.header-controls select {
+  font: inherit;
+  font-size: 0.88rem;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  padding: 0 11px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.header-controls input:focus,
+.header-controls select:focus { border-color: var(--accent); }
+.header-controls input { flex: 1; min-width: 140px; }
+.stats { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; }
+.hidden { display: none !important; }
+
+.back-bar {
+  max-width: 900px;
+  margin: 14px auto 0;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--accent);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 6px 0;
+  transition: opacity 0.15s;
+}
+.back-btn:hover { opacity: 0.7; }
+.back-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.legend {
+  max-width: 900px;
+  margin: 12px auto 0;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 4px;
+}
+.legend-dot.edu { background: var(--edu-tag); }
+.legend-dot.subsidy { background: var(--subsidy-tag); }
+.legend-dot.save { background: var(--save-green); }
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 18px 24px 40px;
+  flex: 1;
+}
+
+/* ── 首页分类卡片 ── */
+.cat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 30px;
+}
+.cat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+.cat-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.cat-icon {
+  font-size: 2.4rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.cat-name {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.cat-count {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.cat-start {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+/* ── 子分类卡片 ── */
+.subcat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.subcat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+.subcat-card:hover {
+  box-shadow: 0 3px 14px rgba(0,0,0,.07);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.subcat-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.subcat-count {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* ── 产品网格 ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 15px 16px;
+  transition: box-shadow 0.15s;
+}
+.card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.card-category {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.card-name {
+  font-size: 0.93rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+.card-spec {
+  font-size: 0.77rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+.prices {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.84rem;
+}
+.price-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.price-label .tag {
+  display: inline-block;
+  font-size: 0.64rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 4px;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+.tag.original { background: var(--text-secondary); }
+.tag.edu { background: var(--edu-tag); }
+.tag.subsidy { background: var(--subsidy-tag); }
+.price-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.price-value.original { color: var(--price-gray); text-decoration: line-through; }
+.price-value.edu { color: var(--edu-tag); }
+.price-value.subsidy { color: var(--subsidy-tag); }
+.savings {
+  display: flex;
+  gap: 8px;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.save-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--save-green);
+  background: var(--save-bg);
+  padding: 3px 9px;
+  border-radius: 5px;
+}
+.save-badge .save-arrow { font-size: 0.68rem; }
+.save-badge.double {
+  color: var(--subsidy-tag);
+  background: #fef0ea;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+.empty svg { margin-bottom: 14px; opacity: .35; }
+.empty h3 { font-size: 1rem; font-weight: 500; margin-bottom: 4px; }
+.empty p { font-size: 0.85rem; }
+
+.footer {
+  text-align: center;
+  padding: 16px 24px;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.footer a { color: var(--accent); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+.footer .note { margin-top: 2px; font-size: 0.68rem; }
+
+@media (max-width: 600px) {
+  .header { padding: 12px 14px 10px; }
+  .header h1 { font-size: 1rem; }
+  .container { padding: 12px 12px 28px; }
+  .cat-grid { gap: 12px; margin-top: 20px; }
+  .cat-card { padding: 22px 16px; }
+  .cat-icon { font-size: 2rem; }
+  .subcat-grid { grid-template-columns: 1fr 1fr; }
+  .grid { grid-template-columns: 1fr; }
+  .card { padding: 13px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <h1>🏷️ 比价工具</h1>
+    <div class="header-controls" id="headerControls">
+      <input type="text" id="search" placeholder="搜索产品名称…" autocomplete="off">
+      <select id="sortBy">
+        <option value="default">默认排序</option>
+        <option value="edu-save">教育优惠省最多</option>
+        <option value="subsidy-save">国补省最多</option>
+        <option value="price-asc">价格从低到高</option>
+        <option value="price-desc">价格从高到低</option>
+      </select>
+      <span class="stats" id="stats"></span>
+    </div>
+  </div>
+  <div class="back-bar" id="backBar">
+    <button class="back-btn" id="backBtn">← 返回</button>
+    <span class="back-title" id="backTitle"></span>
+  </div>
+  <div class="legend" id="legend">
+    <span class="legend-item"><span class="legend-dot edu"></span> 教育优惠价</span>
+    <span class="legend-item">
+      <label class="switch" style="margin:0 2px">
+        <input type="checkbox" id="eduToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </span>
+    <span class="legend-item"><span class="legend-dot subsidy"></span> 叠加国补后价</span>
+    <span class="legend-item"><span class="legend-dot save"></span> 省多少钱</span>
+  </div>
+</header>
+
+<main class="container">
+  <div id="catView"></div>
+  <div id="subcatView" class="hidden"></div>
+  <div id="subsubcatView" class="hidden"></div>
+  <div id="productView" class="hidden"><div class="grid" id="productGrid"></div></div>
+</main>
+
+<footer class="footer">
+  数据仅供参考，实际价格以各渠道官方页面为准 &nbsp;·&nbsp;
+  <a href="#" onclick="resetData();return false">重置为示例数据</a>
+  <div class="note">价格数据在浏览器本地存储，修改后刷新不会丢失</div>
+</footer>
+
+<script>
+// ── 主分类配置 ──
+const MAIN_CATS = [
+  { key:'iPhone', icon:'📱', label:'iPhone', hasSub: false },
+  { key:'iPad',   icon:'📟', label:'iPad',   hasSub: true },
+  { key:'Watch',  icon:'⌚',  label:'Watch',  hasSub: true },
+  { key:'Mac',    icon:'💻',  label:'Mac',    hasSub: true },
+];
+
+// ── 子分类配置 ──
+const SUBCATS = {
+  iPad:  [{ key:'11', label:'11' }, { key:'Mini', label:'Mini' }, { key:'Air', label:'Air', subs:[{key:'11inch',label:'11英寸'},{key:'13inch',label:'13英寸'}] }, { key:'Pro', label:'Pro', subs:[{key:'11inch',label:'11英寸'},{key:'13inch',label:'13英寸'}] }],
+  Watch: [{ key:'S11', label:'S11' }, { key:'SE', label:'SE' }],
+  Mac:   [{ key:'Neo', label:'Neo' }, { key:'Air', label:'Air', subs:[{key:'13inch',label:'13英寸'},{key:'15inch',label:'15英寸'}] }, { key:'Pro', label:'Pro', subs:[{key:'14inch',label:'14英寸'},{key:'16inch',label:'16英寸'}] }],
+};
+
+// ── 默认数据 ──
+const DEFAULT_PRODUCTS = [
+  // iPhone
+  { id:"iphone17", cat:"iPhone", subCat:"", name:"iPhone 17", spec:"256GB", original:5999, edu:5999, subsidy:5499 },
+  // iPad 11
+  { id:"ipad11-128", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 128GB", original:3799, edu:3599, subsidy:3099 },
+  { id:"ipad11-256", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 256GB", original:4599, edu:4399, subsidy:3899 },
+  { id:"ipad11-512", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 512GB", original:5899, edu:5699, subsidy:5199 },
+  // iPad Mini
+  { id:"ipadmini-128", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"128GB", original:4799, edu:4399, subsidy:3899 },
+  { id:"ipadmini-256", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"256GB", original:5299, edu:4899, subsidy:4399 },
+  { id:"ipadmini-512", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"512GB", original:6999, edu:6599, subsidy:6599 },
+  // iPad Air 11"
+  { id:"ipadair-11-128", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M3", spec:"128GB", original:5999, edu:5599, subsidy:5099 },
+  { id:"ipadair-11-256", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M3", spec:"256GB", original:6499, edu:6099, subsidy:6099 },
+  { id:"ipadair-11-512", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M3", spec:"512GB", original:8199, edu:7799, subsidy:7799 },
+  { id:"ipadair-11-1t", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M3", spec:"1TB", original:10699, edu:9899, subsidy:9899 },
+  // iPad Air 13"
+  { id:"ipadair-13-128", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M3", spec:"128GB", original:7699, edu:7299, subsidy:7299 },
+  { id:"ipadair-13-256", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M3", spec:"256GB", original:8199, edu:7799, subsidy:7799 },
+  { id:"ipadair-13-512", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M3", spec:"512GB", original:9899, edu:9499, subsidy:9499 },
+  { id:"ipadair-13-1t", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M3", spec:"1TB", original:12399, edu:11599, subsidy:11599 },
+  // iPad Pro 11"
+  { id:"ipadpro-11-256", cat:"iPad", subCat:"Pro", subSubCat:"11inch", name:"iPad Pro 11″ M4", spec:"256GB", original:10799, edu:9899, subsidy:9899 },
+  { id:"ipadpro-11-512", cat:"iPad", subCat:"Pro", subSubCat:"11inch", name:"iPad Pro 11″ M4", spec:"512GB", original:12499, edu:11599, subsidy:11599 },
+  { id:"ipadpro-11-1t", cat:"iPad", subCat:"Pro", subSubCat:"11inch", name:"iPad Pro 11″ M4", spec:"1TB", original:15899, edu:14999, subsidy:14999 },
+  { id:"ipadpro-11-2t", cat:"iPad", subCat:"Pro", subSubCat:"11inch", name:"iPad Pro 11″ M4", spec:"2TB", original:20099, edu:19199, subsidy:19199 },
+  // iPad Pro 13"
+  { id:"ipadpro-13-256", cat:"iPad", subCat:"Pro", subSubCat:"13inch", name:"iPad Pro 13″ M4", spec:"256GB", original:13299, edu:12399, subsidy:12399 },
+  { id:"ipadpro-13-512", cat:"iPad", subCat:"Pro", subSubCat:"13inch", name:"iPad Pro 13″ M4", spec:"512GB", original:14999, edu:14099, subsidy:14099 },
+  { id:"ipadpro-13-1t", cat:"iPad", subCat:"Pro", subSubCat:"13inch", name:"iPad Pro 13″ M4", spec:"1TB", original:18399, edu:17499, subsidy:17499 },
+  { id:"ipadpro-13-2t", cat:"iPad", subCat:"Pro", subSubCat:"13inch", name:"iPad Pro 13″ M4", spec:"2TB", original:22599, edu:21699, subsidy:21699 },
+  // Watch S11
+  { id:"aw-s11-42", cat:"Watch", subCat:"S11", name:"Apple Watch S11 42mm", spec:"GPS版", original:2999, edu:2699, subsidy:2294.15 },
+  { id:"aw-s11-42-cell", cat:"Watch", subCat:"S11", name:"Apple Watch S11 42mm", spec:"GPS+蜂窝", original:3799, edu:3399, subsidy:2899 },
+  { id:"aw-s11-46", cat:"Watch", subCat:"S11", name:"Apple Watch S11 46mm", spec:"GPS版", original:3199, edu:2899, subsidy:2464.15 },
+  { id:"aw-s11-46-cell", cat:"Watch", subCat:"S11", name:"Apple Watch S11 46mm", spec:"GPS+蜂窝", original:3999, edu:3599, subsidy:3099 },
+  // Watch SE
+  { id:"aw-se2-40", cat:"Watch", subCat:"SE", name:"Apple Watch SE 2 40mm", spec:"GPS版", original:1999, edu:1799, subsidy:1529.15 },
+  { id:"aw-se2-40-cell", cat:"Watch", subCat:"SE", name:"Apple Watch SE 2 40mm", spec:"GPS+蜂窝", original:2399, edu:2199, subsidy:1869.15 },
+  { id:"aw-se2-44", cat:"Watch", subCat:"SE", name:"Apple Watch SE 2 44mm", spec:"GPS版", original:2199, edu:1999, subsidy:1699.15 },
+  { id:"aw-se2-44-cell", cat:"Watch", subCat:"SE", name:"Apple Watch SE 2 44mm", spec:"GPS+蜂窝", original:2599, edu:2399, subsidy:2039.15 },
+  // Mac Neo
+  { id:"mac-neo-256", cat:"Mac", subCat:"Neo", name:"Mac Neo", spec:"256GB", original:5499, edu:4799, subsidy:4079.15 },
+  { id:"mac-neo-512", cat:"Mac", subCat:"Neo", name:"Mac Neo", spec:"512GB", original:6299, edu:5599, subsidy:4759.15 },
+  // Mac Air 13"
+  { id:"mba-13-512", cat:"Mac", subCat:"Air", subSubCat:"13inch", name:"MacBook Air 13″ M4", spec:"16+512GB", original:9999, edu:9249, subsidy:7861.65 },
+  { id:"mba-13-1t", cat:"Mac", subCat:"Air", subSubCat:"13inch", name:"MacBook Air 13″ M4", spec:"16+1TB", original:12249, edu:11499, subsidy:9999 },
+  { id:"mba-13-24", cat:"Mac", subCat:"Air", subSubCat:"13inch", name:"MacBook Air 13″ M4", spec:"24+1TB", original:13749, edu:12999, subsidy:11499 },
+  // Mac Air 15"
+  { id:"mba-15-512", cat:"Mac", subCat:"Air", subSubCat:"15inch", name:"MacBook Air 15″ M4", spec:"16+512GB", original:11999, edu:11249, subsidy:9749 },
+  { id:"mba-15-1t", cat:"Mac", subCat:"Air", subSubCat:"15inch", name:"MacBook Air 15″ M4", spec:"16+1TB", original:14249, edu:13499, subsidy:11999 },
+  { id:"mba-15-24", cat:"Mac", subCat:"Air", subSubCat:"15inch", name:"MacBook Air 15″ M4", spec:"24+1TB", original:15749, edu:14999, subsidy:13499 },
+  // Mac Pro 14"
+    { id:"mbp-14-161tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ M5 Pro", spec:"16+1TB", original:15999, edu:15199, subsidy:13699 },
+    { id:"mbp-14-241tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ M5 Pro", spec:"24+1TB", original:17499, edu:16699, subsidy:15199 },
+    { id:"mbp-14-321tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ M5 Pro", spec:"32+1TB", original:18999, edu:18199, subsidy:16699 },
+  // Mac Pro 16"
+    { id:"mbp-16-m5pro-241tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Pro", spec:"24+1TB", original:24999, edu:23399, subsidy:21899 },
+    { id:"mbp-16-m5pro-481tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Pro", spec:"48+1TB", original:29499, edu:27899, subsidy:26399 },
+    { id:"mbp-16-m5max-362tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Max", spec:"36+2TB", original:35999, edu:33499, subsidy:31999 },
+    { id:"mbp-16-m5max-482tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Max", spec:"48+2TB", original:40999, edu:38499, subsidy:36999 },
+];
+
+// ── 辅助 ──
+function calcOnlySubsidy(p) {
+  if (p.original > 6000 && p.cat !== "Mac") return p.original;
+  const cap = p.cat === "Mac" ? 1500 : 500;
+  const amt = Math.min(p.original * 0.15, cap);
+  return Math.floor((p.original - amt) * 100) / 100;
+}
+function fmt(v) {
+  if (v === Math.floor(v)) return v.toLocaleString();
+  return v.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function calcEduSave(p) { return p.original - p.edu; }
+function calcSubsidySave(p) { return p.original - p.subsidy; }
+function calcTotalSave(p) { return p.original - p.subsidy; }
+
+// ── 持久化 ──
+const STORAGE_KEY = 'price_compare_products_v1';
+function loadProducts() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) { const d = JSON.parse(raw); if (Array.isArray(d) && d.length) return d; }
+  } catch {}
+  return JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+}
+function saveProducts(prods) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(prods));
+}
+
+// ── 视图状态 ──
+let currentView = 'home';
+let activeCat = null;
+let activeSubCat = null;
+let activeSubSubCat = null;
+
+function showSubcat(catKey) {
+  activeCat = catKey;
+  activeSubCat = null;
+  currentView = 'subcat';
+  document.getElementById('catView').classList.add('hidden');
+  document.getElementById('subcatView').classList.remove('hidden');
+  document.getElementById('productView').classList.add('hidden');
+  document.getElementById('backBar').classList.remove('hidden');
+  document.getElementById('legend').classList.add('hidden');
+  renderSubcat(loadProducts());
+}
+
+function showProducts(subCatKey, subSubCatKey) {
+  activeSubCat = subCatKey;
+  activeSubSubCat = subSubCatKey || null;
+  currentView = 'products';
+  document.getElementById('catView').classList.add('hidden');
+  document.getElementById('subcatView').classList.add('hidden');
+  document.getElementById('subsubcatView').classList.add('hidden');
+  document.getElementById('productView').classList.remove('hidden');
+  document.getElementById('backBar').classList.remove('hidden');
+  document.getElementById('legend').classList.remove('hidden');
+  renderProducts(loadProducts());
+}
+
+function showSubsubcat(subCatKey) {
+  activeCat = activeCat;
+  activeSubCat = subCatKey;
+  activeSubSubCat = null;
+  currentView = 'subsubcat';
+  document.getElementById('catView').classList.add('hidden');
+  document.getElementById('subcatView').classList.add('hidden');
+  document.getElementById('subsubcatView').classList.remove('hidden');
+  document.getElementById('productView').classList.add('hidden');
+  document.getElementById('backBar').classList.remove('hidden');
+  document.getElementById('legend').classList.add('hidden');
+  renderSubsubcat(loadProducts());
+}
+
+function showHome() {
+  currentView = 'home';
+  activeCat = null;
+  activeSubCat = null;
+  activeSubSubCat = null;
+  document.getElementById('catView').classList.remove('hidden');
+  document.getElementById('subcatView').classList.add('hidden');
+  document.getElementById('productView').classList.add('hidden');
+  document.getElementById('backBar').classList.add('hidden');
+  document.getElementById('legend').classList.add('hidden');
+  renderHome();
+}
+
+function goBack() {
+  if (currentView === 'products' && activeCat && SUBCATS[activeCat]) {
+    const currentSub = SUBCATS[activeCat].find(s => s.key === activeSubCat);
+    if (currentSub && currentSub.subs) {
+      showSubsubcat(activeSubCat);
+    } else {
+      showSubcat(activeCat);
+    }
+  } else if (currentView === 'subsubcat') {
+    showSubcat(activeCat);
+  } else {
+    showHome();
+  }
+}
+
+// ── 渲染首页 ──
+function renderHome() {
+  const products = loadProducts();
+  const el = document.getElementById('catView');
+  el.classList.remove('hidden');
+  const grid = document.createElement('div');
+  grid.className = 'cat-grid';
+
+  MAIN_CATS.forEach(cat => {
+    const items = products.filter(p => p.cat === cat.key);
+    const minPrice = Math.min(...items.map(p => p.original));
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    card.innerHTML =
+      '<div class="cat-icon">' + cat.icon + '</div>' +
+      '<div class="cat-name">' + cat.label + '</div>' +
+      '<div class="cat-count">共 ' + items.length + ' 款</div>' +
+      '<div class="cat-start">¥' + minPrice.toLocaleString() + ' 起</div>';
+    card.addEventListener('click', function() {
+      if (cat.hasSub) {
+        showSubcat(cat.key);
+      } else {
+        activeCat = cat.key;
+        activeSubCat = null;
+        currentView = 'products';
+        document.getElementById('catView').classList.add('hidden');
+        document.getElementById('productView').classList.remove('hidden');
+        document.getElementById('backBar').classList.remove('hidden');
+        document.getElementById('legend').classList.remove('hidden');
+        renderProducts(loadProducts());
+      }
+    });
+    grid.appendChild(card);
+  });
+
+  el.innerHTML = '';
+  el.appendChild(grid);
+}
+
+// ── 渲染子分类 ──
+function renderSubcat(products) {
+  const el = document.getElementById('subcatView');
+  el.classList.remove('hidden');
+  const subs = SUBCATS[activeCat] || [];
+  const grid = document.createElement('div');
+  grid.className = 'subcat-grid';
+
+  subs.forEach(sub => {
+    const items = products.filter(p => p.cat === activeCat && p.subCat === sub.key);
+    const card = document.createElement('div');
+    card.className = 'subcat-card';
+    card.innerHTML =
+      '<div class="subcat-name">' + sub.label + '</div>' +
+      '<div class="subcat-count">共 ' + items.length + ' 款</div>';
+    card.addEventListener('click', function() {
+      if (sub.subs) {
+        showSubsubcat(sub.key);
+      } else {
+        showProducts(sub.key);
+      }
+    });
+    grid.appendChild(card);
+  });
+
+  el.innerHTML = '';
+  el.appendChild(grid);
+
+  document.getElementById('backTitle').textContent = activeCat;
+  document.getElementById('backBtn').onclick = showHome;
+}
+
+// ── 渲染子子分类 ──
+function renderSubsubcat(products) {
+  const el = document.getElementById('subsubcatView');
+  el.classList.remove('hidden');
+  const sub = SUBCATS[activeCat].find(s => s.key === activeSubCat);
+  const subs = sub ? sub.subs : [];
+  const grid = document.createElement('div');
+  grid.className = 'subcat-grid';
+
+  subs.forEach(ss => {
+    const items = products.filter(p => p.cat === activeCat && p.subCat === activeSubCat && p.subSubCat === ss.key);
+    const card = document.createElement('div');
+    card.className = 'subcat-card';
+    card.innerHTML =
+      '<div class="subcat-name">' + ss.label + '</div>' +
+      '<div class="subcat-count">共 ' + items.length + ' 款</div>';
+    card.addEventListener('click', function() { showProducts(activeSubCat, ss.key); });
+    grid.appendChild(card);
+  });
+
+  el.innerHTML = '';
+  el.appendChild(grid);
+
+  document.getElementById('backTitle').textContent = activeCat + ' · ' + activeSubCat;
+  document.getElementById('backBtn').onclick = function() { showSubcat(activeCat); };
+}
+
+// ── 渲染产品列表 ──
+function renderProducts(products) {
+  const grid = document.getElementById('productGrid');
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const sort = document.getElementById('sortBy').value;
+
+  let list = products;
+  if (activeCat) list = list.filter(p => p.cat === activeCat);
+  if (activeSubCat) list = list.filter(p => p.subCat === activeSubCat);
+  if (activeSubSubCat) list = list.filter(p => p.subSubCat === activeSubSubCat);
+  if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || p.spec.toLowerCase().includes(q));
+
+  switch (sort) {
+    case 'edu-save':     list.sort((a,b) => calcEduSave(b) - calcEduSave(a)); break;
+    case 'subsidy-save': list.sort((a,b) => calcSubsidySave(b) - calcSubsidySave(a)); break;
+    case 'price-asc':    list.sort((a,b) => a.original - b.original); break;
+    case 'price-desc':   list.sort((a,b) => b.original - a.original); break;
+  }
+
+  document.getElementById('stats').textContent = '共 ' + list.length + ' 款';
+
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty">' +
+      '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>' +
+      '<h3>没有找到匹配的产品</h3>' +
+      '<p>试试其他搜索词或分类</p></div>';
+    return;
+  }
+
+  grid.innerHTML = list.map(p => {
+    const es = calcEduSave(p);
+    const ss = calcSubsidySave(p);
+    const eduOn = document.getElementById('eduToggle').checked;
+    const hasEduBonus = eduOn && es > 0;
+    const subSave = eduOn ? (p.edu - p.subsidy) : (p.original - calcOnlySubsidy(p));
+    const hasSubsidyBonus = (p.cat === "Mac" || p.original <= 6000) && subSave > 0;
+    const isDouble = hasEduBonus && hasSubsidyBonus;
+    const ts = calcTotalSave(p);
+
+    return '<div class="card">' +
+      '<div class="card-header"><span class="card-category">' + (p.subSubCat ? p.cat + ' · ' + p.subCat + ' ' + p.subSubCat.replace('inch','英寸') : p.subCat ? p.cat + ' · ' + p.subCat : p.cat) + '</span></div>' +
+      '<div class="card-name">' + p.name + '</div>' +
+      '<div class="card-spec">' + p.spec + '</div>' +
+      '<div class="prices">' +
+        '<div class="price-row"><span class="price-label"><span class="tag original">原价</span></span><span class="price-value original">¥' + fmt(p.original) + '</span></div>' +
+        '<div class="price-row"><span class="price-label"><span class="tag edu">教育优惠</span></span><span class="price-value edu">' + (p.edu === p.original || !eduOn ? '无' : '¥' + fmt(p.edu)) + '</span></div>' +
+        '<div class="price-row"><span class="price-label"><span class="tag subsidy">' + (eduOn ? '叠加国补' : '国补') + '</span></span><span class="price-value subsidy">' + (p.original > 6000 && p.cat !== "Mac" ? '—' : '¥' + (eduOn ? fmt(p.subsidy) : fmt(calcOnlySubsidy(p)))) + '</span></div>' +
+      '</div>' +
+      '<div class="savings">' +
+        (hasEduBonus ? '<span class="save-badge"><span class="save-arrow">↓</span> 教育优惠省 ¥' + fmt(es) + '</span>' : '') +
+        (hasSubsidyBonus ? '<span class="save-badge' + (es > 0 && ss > es ? ' double' : '') + '"><span class="save-arrow">↓</span> 国补省 ¥' + fmt(subSave) + '</span>' : '') +
+        (isDouble && ts > Math.max(es, ss) ? '<span class="save-badge double"><span class="save-arrow">⬇</span> 叠加省 ¥' + fmt(ts) + '</span>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('backTitle').textContent = (activeSubCat ? activeCat + ' · ' + activeSubCat : activeCat);
+  document.getElementById('backBtn').onclick = goBack;
+}
+
+function resetData() {
+  if (!confirm('重置会覆盖所有自定义数据，确认？')) return;
+  saveProducts(DEFAULT_PRODUCTS);
+  showHome();
+}
+
+// ── 启动 ──
+document.addEventListener('DOMContentLoaded', () => {
+  // Load edu toggle state
+  const eduToggle = document.getElementById('eduToggle');
+  try {
+    const saved = localStorage.getItem('edu_toggle');
+    if (saved === 'off') eduToggle.checked = false;
+  } catch {}
+  renderHome();
+
+  document.getElementById('search').addEventListener('input', function() {
+    if (currentView === 'home' || currentView === 'subcat') return;
+    renderProducts(loadProducts());
+  });
+  document.getElementById('sortBy').addEventListener('change', function() {
+    if (currentView === 'home' || currentView === 'subcat') return;
+    renderProducts(loadProducts());
+  });
+  eduToggle.addEventListener('change', function() {
+    localStorage.setItem('edu_toggle', this.checked ? 'on' : 'off');
+    if (currentView === 'home') renderHome();
+    else if (currentView === 'subcat') renderSubcat(loadProducts());
+    else renderProducts(loadProducts());
+  });
+});
+</script>
+</body>
+</html>
