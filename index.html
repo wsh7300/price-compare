@@ -523,6 +523,7 @@ function showSubcat(catKey) {
   activeSubCat = null;
   currentView = 'subcat';
   document.getElementById('catView').classList.add('hidden');
+  document.getElementById('subsubcatView').classList.add('hidden');
   document.getElementById('subcatView').classList.remove('hidden');
   document.getElementById('productView').classList.add('hidden');
   document.getElementById('backBar').classList.remove('hidden');
@@ -562,6 +563,10 @@ function showHome() {
   activeCat = null;
   activeSubCat = null;
   activeSubSubCat = null;
+  document.getElementById('subcatView').innerHTML = '';
+  document.getElementById('subsubcatView').innerHTML = '';
+  document.getElementById('productGrid').innerHTML = '';
+  activeSubSubCat = null;
   document.getElementById('catView').classList.remove('hidden');
   document.getElementById('subcatView').classList.add('hidden');
   document.getElementById('productView').classList.add('hidden');
@@ -580,6 +585,8 @@ function goBack() {
     }
   } else if (currentView === 'subsubcat') {
     showSubcat(activeCat);
+  } else if (currentView === 'subcat') {
+    showHome();
   } else {
     showHome();
   }
@@ -651,6 +658,7 @@ function renderSubcat(products) {
 
   el.innerHTML = '';
   el.appendChild(grid);
+  document.getElementById('subsubcatView').innerHTML = '';
 
   document.getElementById('backTitle').textContent = activeCat;
   document.getElementById('backBtn').onclick = showHome;
