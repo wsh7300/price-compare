@@ -662,8 +662,15 @@ function saveProducts(prods) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(prods));
 }
 
+function clearSearch() {
+  const el = document.getElementById('search');
+  if (el) el.value = '';
+  isSearching = false;
+}
+
 // ── 视图状态 ──
 let currentBoard = 'home';
+let isSearching = false;
 let currentView = 'home';
 let activeCat = null;
 let activeSubCat = null;
@@ -710,6 +717,7 @@ function showSubsubcat(subCatKey) {
 }
 
 function showHome() {
+  clearSearch();
   currentView = 'home';
   activeCat = null;
   activeSubCat = null;
@@ -748,6 +756,7 @@ function goBack() {
 
 // ── 板块导航 ──
 function showBoardHome() {
+  clearSearch();
   currentBoard = 'home';
   currentView = 'home';
   activeCat = null;
@@ -771,6 +780,7 @@ function showPriceBoard() {
 }
 
 function showSubsidyBoard() {
+  clearSearch();
   currentBoard = 'subsidy';
   document.getElementById('boardView').classList.add('hidden');
   document.getElementById('priceBoard').classList.add('hidden');
@@ -882,24 +892,19 @@ function renderSubsubcat(products) {
 }
 
 // ── 渲染产品列表 ──
-function renderProducts(products) {
-  const grid = document.getElementById('productGrid');
-  const q = document.getElementById('search').value.trim().toLowerCase();
+function applySort(list) {
   const sort = document.getElementById('sortBy').value;
-
-  let list = products;
-  if (activeCat) list = list.filter(p => p.cat === activeCat);
-  if (activeSubCat) list = list.filter(p => p.subCat === activeSubCat);
-  if (activeSubSubCat) list = list.filter(p => p.subSubCat === activeSubSubCat);
-  if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || p.spec.toLowerCase().includes(q));
-
   switch (sort) {
     case 'edu-save':     list.sort((a,b) => calcEduSave(b) - calcEduSave(a)); break;
     case 'subsidy-save': list.sort((a,b) => calcSubsidySave(b) - calcSubsidySave(a)); break;
     case 'price-asc':    list.sort((a,b) => a.original - b.original); break;
     case 'price-desc':   list.sort((a,b) => b.original - a.original); break;
   }
+  return list;
+}
 
+function renderProductCards(list) {
+  const grid = document.getElementById('productGrid');
   document.getElementById('stats').textContent = '共 ' + list.length + ' 款';
 
   if (!list.length) {
@@ -936,9 +941,60 @@ function renderProducts(products) {
       '</div>' +
     '</div>';
   }).join('');
+}
 
+function renderProducts(products) {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  let list = products;
+  if (activeCat) list = list.filter(p => p.cat === activeCat);
+  if (activeSubCat) list = list.filter(p => p.subCat === activeSubCat);
+  if (activeSubSubCat) list = list.filter(p => p.subSubCat === activeSubSubCat);
+  if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || p.spec.toLowerCase().includes(q));
+  renderProductCards(applySort(list));
   document.getElementById('backTitle').textContent = (activeSubCat ? activeCat + ' · ' + activeSubCat : activeCat);
   document.getElementById('backBtn').onclick = goBack;
+}
+
+// ── 全局搜索 ──
+function renderGlobalSearch() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const list = loadProducts().filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    p.spec.toLowerCase().includes(q) ||
+    p.cat.toLowerCase().includes(q) ||
+    (p.subCat || '').toLowerCase().includes(q)
+  );
+  renderProductCards(applySort(list));
+}
+
+function enterGlobalSearch() {
+  isSearching = true;
+  document.getElementById('catView').classList.add('hidden');
+  document.getElementById('subcatView').classList.add('hidden');
+  document.getElementById('subsubcatView').classList.add('hidden');
+  document.getElementById('productView').classList.remove('hidden');
+  document.getElementById('backBar').classList.remove('hidden');
+  document.getElementById('backTitle').textContent = '搜索结果';
+  document.getElementById('backBtn').onclick = exitSearch;
+  document.getElementById('legend').classList.remove('hidden');
+  renderGlobalSearch();
+}
+
+function exitSearch() {
+  clearSearch();
+  if (currentView === 'products') {
+    document.getElementById('productView').classList.remove('hidden');
+    renderProducts(loadProducts());
+  } else if (currentView === 'subsubcat') {
+    document.getElementById('productView').classList.add('hidden');
+    showSubsubcat(activeSubCat);
+  } else if (currentView === 'subcat') {
+    document.getElementById('productView').classList.add('hidden');
+    showSubcat(activeCat);
+  } else {
+    document.getElementById('productView').classList.add('hidden');
+    showHome();
+  }
 }
 
 function resetData() {
@@ -960,16 +1016,26 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('goSubsidyBoard').addEventListener('click', showSubsidyBoard);
 
   document.getElementById('search').addEventListener('input', function() {
-    if (currentView === 'home' || currentView === 'subcat') return;
-    renderProducts(loadProducts());
+    if (currentBoard !== 'price') return;
+    const q = this.value.trim();
+    if (q) {
+      if (!isSearching) enterGlobalSearch();
+      else renderGlobalSearch();
+    } else if (isSearching) {
+      exitSearch();
+    } else if (currentView === 'products') {
+      renderProducts(loadProducts());
+    }
   });
   document.getElementById('sortBy').addEventListener('change', function() {
-    if (currentView === 'home' || currentView === 'subcat') return;
-    renderProducts(loadProducts());
+    if (currentBoard !== 'price') return;
+    if (isSearching) renderGlobalSearch();
+    else if (currentView === 'products') renderProducts(loadProducts());
   });
   eduToggle.addEventListener('change', function() {
     localStorage.setItem('edu_toggle', this.checked ? 'on' : 'off');
-    if (currentView === 'home') renderHome();
+    if (isSearching) renderGlobalSearch();
+    else if (currentView === 'home') renderHome();
     else if (currentView === 'subcat') renderSubcat(loadProducts());
     else renderProducts(loadProducts());
   });
