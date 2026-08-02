@@ -423,6 +423,51 @@ body {
 .s60-result-value.discount { color: #ff3b30; font-weight: 600; }
 .s60-section-title { font-size: 0.85rem; font-weight: 600; color: var(--text); padding: 10px 0 4px; margin-top: 8px; border-top: 1px dashed #e5e5ea; }
 .s60-note { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); text-align: center; font-size: 0.72rem; color: var(--text-secondary); }
+
+/* ── 建行分期优惠 ── */
+.inst-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background-color: #fff;
+  font-size: 0.95rem;
+  color: var(--text);
+  transition: border-color 0.2s ease;
+}
+.inst-input:focus { outline: none; border-color: var(--accent); }
+.inst-btn {
+  width: 100%;
+  padding: 13px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.inst-btn:hover { background: #0060c0; }
+.inst-tip { font-size: 0.78rem; color: #d93025; margin: 8px 0; line-height: 1.5; }
+.inst-table-wrap { overflow-x: auto; margin: 14px 0; }
+.inst-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.inst-table th, .inst-table td { border: 1px solid var(--border); padding: 8px 6px; text-align: center; white-space: nowrap; }
+.inst-table th { background: #e8f2ff; color: #004c99; font-weight: 600; }
+.inst-table td { background: #fff; color: var(--text); }
+.inst-section-title { font-size: 0.9rem; font-weight: 600; color: var(--text); padding: 12px 0 6px; margin-top: 12px; border-top: 1px dashed #e5e5ea; }
+.inst-result-card { display: none; margin-top: 8px; }
+.inst-result-card.show { display: block; }
+.inst-scheme { background: #edf4ff; padding: 10px; margin: 6px 0; border-radius: 8px; font-size: 0.85rem; color: var(--text); }
+.inst-best { background: #ff7d00; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; margin-left: 6px; }
+.inst-rank-box { margin: 12px 0; padding: 12px; background: #f0f7ff; border-radius: 8px; }
+.inst-rank-title { font-weight: 600; color: #004c99; margin-bottom: 8px; font-size: 0.9rem; }
+.inst-rank-item { padding: 6px 0; font-size: 0.8rem; border-bottom: 1px dashed #d0e4ff; color: var(--text); }
+.inst-rank-item:last-child { border: none; }
+.inst-stat-line { margin: 7px 0; font-size: 0.85rem; }
+.inst-stat-line.low { color: #2e7d32; font-weight: 600; }
+.inst-stat-line.discount { color: #ff3d00; font-weight: 600; }
+
 </style>
 </head>
 <body>
@@ -473,6 +518,12 @@ body {
         <div class="cat-icon">📱</div>
         <div class="cat-name">6000+ 补贴</div>
         <div class="cat-count">套餐活动查询</div>
+        <div class="cat-start">进入 →</div>
+      </div>
+      <div class="board-card" id="goInstallmentBoard">
+        <div class="cat-icon">💳</div>
+        <div class="cat-name">建行分期优惠</div>
+        <div class="cat-count">信用卡满减 · 利息计算</div>
         <div class="cat-start">进入 →</div>
       </div>
     </div>
@@ -544,6 +595,63 @@ body {
         </div>
       </div>
       <div class="s60-note">Copyright © 2026 Dennis Luohe lnc.</div>
+    </div>
+  </div>
+  <!-- 板块三：建行分期优惠 -->
+  <div id="installmentBoard" class="hidden">
+    <div class="subsidy-wrap">
+      <div class="s60-form-group">
+        <label class="s60-label" for="instTotalMoney">商品总金额（元）</label>
+        <input class="inst-input" id="instTotalMoney" type="number" placeholder="例：6000" value="6000">
+        <p class="inst-tip">✅ 先享满减优惠，再算分期利息；提前还款仅付已出期利息，剩余全免</p>
+      </div>
+      <button class="inst-btn" id="instCalcBtn">一键计算最优分期搭配</button>
+
+      <div class="inst-section-title">档位 &amp; 满减对照表</div>
+      <div class="inst-table-wrap">
+        <table class="inst-table">
+          <thead>
+            <tr>
+              <th>分期本金</th>
+              <th>立减优惠</th>
+              <th>3期总利息</th>
+              <th>3期每期利息</th>
+              <th>6期总利息</th>
+              <th>6期每期利息</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1000</td><td>66</td><td>14.57</td><td>4.86</td><td>21.86</td><td>3.64</td></tr>
+            <tr><td>2000</td><td>136</td><td>29.08</td><td>9.69</td><td>43.62</td><td>7.27</td></tr>
+            <tr><td>2500</td><td>166</td><td>36.41</td><td>12.14</td><td>54.62</td><td>9.10</td></tr>
+            <tr><td>3000</td><td>206</td><td>43.59</td><td>14.53</td><td>65.38</td><td>10.90</td></tr>
+            <tr><td>3500</td><td>236</td><td>50.92</td><td>16.97</td><td>76.38</td><td>12.73</td></tr>
+            <tr><td>4000</td><td>276</td><td>58.09</td><td>19.36</td><td>87.14</td><td>14.52</td></tr>
+            <tr><td>5000</td><td>346</td><td>72.60</td><td>24.20</td><td>108.90</td><td>18.15</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="inst-result-card" id="instResultBox">
+        <div class="inst-section-title">综合最优省钱方案 <span class="inst-best">全场最低成本</span></div>
+        <div id="instBestScheme"></div>
+        <div class="inst-rank-box">
+          <div class="inst-rank-title">🏆 分3期</div>
+          <div id="instRank3List"></div>
+        </div>
+        <div class="inst-rank-box">
+          <div class="inst-rank-title">🏆 分6期</div>
+          <div id="instRank6List"></div>
+        </div>
+        <div class="inst-section-title">💰 明细</div>
+        <div class="inst-stat-line">目标金额：<span id="instTargetMoney"></span> 元</div>
+        <div class="inst-stat-line">组合总本金：<span id="instSumP"></span> 元</div>
+        <div class="inst-stat-line discount">累计满减优惠：<span id="instSumDiscount"></span> 元</div>
+        <div class="inst-stat-line">优惠后实际本金：<span id="instRealP"></span> 元</div>
+        <div class="inst-stat-line">全部结清总利息：<span id="instSumAllI"></span> 元</div>
+        <div class="inst-stat-line low">还1期提前结清利息：<span id="instOnePayI"></span> 元</div>
+        <div class="inst-stat-line">综合费率：<span id="instRateShow"></span></div>
+      </div>
     </div>
   </div>
 </main>
@@ -765,6 +873,7 @@ function showBoardHome() {
   document.getElementById('boardView').classList.remove('hidden');
   document.getElementById('priceBoard').classList.add('hidden');
   document.getElementById('subsidyBoard').classList.add('hidden');
+  document.getElementById('installmentBoard').classList.add('hidden');
   document.getElementById('headerControls').classList.add('hidden');
   document.getElementById('backBar').classList.add('hidden');
   document.getElementById('legend').classList.add('hidden');
@@ -775,6 +884,7 @@ function showPriceBoard() {
   document.getElementById('boardView').classList.add('hidden');
   document.getElementById('priceBoard').classList.remove('hidden');
   document.getElementById('subsidyBoard').classList.add('hidden');
+  document.getElementById('installmentBoard').classList.add('hidden');
   document.getElementById('headerControls').classList.remove('hidden');
   showHome();
 }
@@ -785,11 +895,27 @@ function showSubsidyBoard() {
   document.getElementById('boardView').classList.add('hidden');
   document.getElementById('priceBoard').classList.add('hidden');
   document.getElementById('subsidyBoard').classList.remove('hidden');
+  document.getElementById('installmentBoard').classList.add('hidden');
   document.getElementById('headerControls').classList.add('hidden');
   document.getElementById('legend').classList.add('hidden');
   document.getElementById('backBar').classList.remove('hidden');
   document.getElementById('backTitle').textContent = '首页';
   document.getElementById('backBtn').onclick = showBoardHome;
+}
+
+function showInstallmentBoard() {
+  clearSearch();
+  currentBoard = 'installment';
+  document.getElementById('boardView').classList.add('hidden');
+  document.getElementById('priceBoard').classList.add('hidden');
+  document.getElementById('subsidyBoard').classList.add('hidden');
+  document.getElementById('installmentBoard').classList.remove('hidden');
+  document.getElementById('headerControls').classList.add('hidden');
+  document.getElementById('legend').classList.add('hidden');
+  document.getElementById('backBar').classList.remove('hidden');
+  document.getElementById('backTitle').textContent = '首页';
+  document.getElementById('backBtn').onclick = showBoardHome;
+  startInstallmentCalc();
 }
 
 // ── 渲染首页 ──
@@ -1014,6 +1140,7 @@ document.addEventListener('DOMContentLoaded', () => {
   showBoardHome();
   document.getElementById('goPriceBoard').addEventListener('click', showPriceBoard);
   document.getElementById('goSubsidyBoard').addEventListener('click', showSubsidyBoard);
+  document.getElementById('goInstallmentBoard').addEventListener('click', showInstallmentBoard);
 
   document.getElementById('search').addEventListener('input', function() {
     if (currentBoard !== 'price') return;
@@ -1083,6 +1210,121 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('s60Glass').innerText = '¥' + pack.glass;
     resultCard.classList.add('show');
   });
+})();
+</script>
+
+
+<!-- 建行分期优惠逻辑 -->
+<script>
+(function() {
+  const instData = [
+    {p:1000, discount:66, q3:14.57, q3_per:4.86, q6:21.86, q6_per:3.64},
+    {p:2000, discount:136, q3:29.08, q3_per:9.69, q6:43.62, q6_per:7.27},
+    {p:2500, discount:166, q3:36.41, q3_per:12.14, q6:54.62, q6_per:9.10},
+    {p:3000, discount:206, q3:43.59, q3_per:14.53, q6:65.38, q6_per:10.90},
+    {p:3500, discount:236, q3:50.92, q3_per:16.97, q6:76.38, q6_per:12.73},
+    {p:4000, discount:276, q3:58.09, q3_per:19.36, q6:87.14, q6_per:14.52},
+    {p:5000, discount:346, q3:72.60, q3_per:24.20, q6:108.90, q6_per:18.15}
+  ];
+
+  function getAllComb(target, type) {
+    let result = [];
+    const keyTotal = type === 'q3' ? 'q3' : 'q6';
+    const keyPer = type === 'q3' ? 'q3_per' : 'q6_per';
+
+    function backtrack(idx, arr, sumP, sumI, sumPer, sumDis) {
+      if (sumP >= target) {
+        result.push({
+          list: [...arr],
+          totalP: sumP,
+          totalDiscount: sumDis,
+          totalInterest: sumI,
+          totalPerInterest: sumPer,
+          period: type === 'q3' ? '3期' : '6期'
+        });
+        return;
+      }
+      for (let i = idx; i < instData.length; i++) {
+        let item = instData[i];
+        arr.push(item);
+        backtrack(i, arr, sumP + item.p, sumI + item[keyTotal], sumPer + item[keyPer], sumDis + item.discount);
+        arr.pop();
+      }
+    }
+    backtrack(0, [], 0, 0, 0, 0);
+
+    result.sort((a, b) => {
+      let diffA = Math.abs(a.totalP - target);
+      let diffB = Math.abs(b.totalP - target);
+      if (diffA !== diffB) return diffA - diffB;
+      let netA = a.totalInterest - a.totalDiscount;
+      let netB = b.totalInterest - b.totalDiscount;
+      return netA - netB;
+    });
+    return result;
+  }
+
+  function combToHtml(comb) {
+    let html = "";
+    comb.list.forEach(function(it) {
+      let per = comb.period === '3期' ? it.q3_per : it.q6_per;
+      let totalI = comb.period === '3期' ? it.q3 : it.q6;
+      html += '<div class="inst-scheme">👉 ' + it.p + '元 分' + comb.period + '，立减' + it.discount + '元，总利息' + totalI + '元，每期利息' + per + '元</div>';
+    });
+    return html;
+  }
+
+  function renderRank(list, domId, topNum) {
+    let html = "";
+    let len = Math.min(topNum, list.length);
+    for (let i = 0; i < len; i++) {
+      let item = list[i];
+      let pArr = item.list.map(function(x) { return x.p; }).join(' + ');
+      let diff = Math.abs(item.totalP - instTargetMoney);
+      let netCost = (item.totalDiscount - item.totalInterest).toFixed(2);
+      html += '<div class="inst-rank-item">' +
+        '第' + (i + 1) + '名：' + pArr + '(' + item.period + ') | 合计' + item.totalP + '元(差额' + diff + '元) | 满减' + item.totalDiscount + '元 | 期满净优惠' + netCost + ' | 1期结清净优惠' + (item.totalDiscount - item.totalPerInterest).toFixed(2) + '元' +
+      '</div>';
+    }
+    document.getElementById(domId).innerHTML = html;
+  }
+
+  let instTargetMoney = 0;
+  function startInstallmentCalc() {
+    instTargetMoney = parseInt(document.getElementById('instTotalMoney').value) || 6000;
+    let list3 = getAllComb(instTargetMoney, 'q3');
+    let list6 = getAllComb(instTargetMoney, 'q6');
+
+    let allList = [...list3.slice(0, 1), ...list6.slice(0, 1)];
+    allList.sort(function(a, b) {
+      let diffA = Math.abs(a.totalP - instTargetMoney);
+      let diffB = Math.abs(b.totalP - instTargetMoney);
+      if (diffA !== diffB) return diffA - diffB;
+      let netA = a.totalInterest - a.totalDiscount;
+      let netB = b.totalInterest - b.totalDiscount;
+      return netA - netB;
+    });
+    let globalBest = allList[0];
+
+    document.getElementById('instTargetMoney').innerText = instTargetMoney;
+    document.getElementById('instBestScheme').innerHTML = combToHtml(globalBest);
+    document.getElementById('instSumP').innerText = globalBest.totalP;
+    document.getElementById('instSumDiscount').innerText = globalBest.totalDiscount;
+    document.getElementById('instRealP').innerText = (globalBest.totalP - globalBest.totalDiscount).toFixed(2);
+    document.getElementById('instSumAllI').innerText = globalBest.totalInterest.toFixed(2);
+    document.getElementById('instOnePayI').innerText = globalBest.totalPerInterest.toFixed(2);
+
+    let rate = (globalBest.totalInterest / globalBest.totalP * 100).toFixed(2);
+    document.getElementById('instRateShow').innerText = rate + '%';
+
+    renderRank(list3, 'instRank3List', 1);
+    renderRank(list6, 'instRank6List', 1);
+
+    document.getElementById('instResultBox').classList.add('show');
+  }
+
+  document.getElementById('instCalcBtn').addEventListener('click', startInstallmentCalc);
+  window.startInstallmentCalc = startInstallmentCalc;
 })();
 </script>
 
