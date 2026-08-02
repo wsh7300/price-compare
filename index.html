@@ -560,10 +560,12 @@ body {
         <label class="s60-label" for="s60Package">套餐情况</label>
         <select class="s60-select" id="s60Package" disabled>
           <option value="">请先选择机型</option>
-          <option value="pkgACS">45W 充电头299 +钢化膜199 +手机壳199+ACS399</option>
-          <option value="pkgACS_299">45W 充电头299 +钢化膜199 +手机壳299+ACS399</option>
-          <option value="pkgC50i_199">45W 充电头299 +钢化膜199 +手机壳199+C50i339</option>
-          <option value="pkgC50i_299">45W 充电头299 +钢化膜199 +手机壳299+C50i339</option>
+          <option value="pkgJTM">45W充电头299+199钢化膜+199手机壳+镜头膜149</option>
+          <option value="pkgJTM299">45W充电头299+199钢化膜+299手机壳+镜头膜149</option>
+          <option value="pkgACS">45W充电头299+钢化膜199+手机壳199+ACS399</option>
+          <option value="pkgACS_299">45W充电头299+钢化膜199+手机壳299+ACS399</option>
+          <option value="pkgC50i_199">45W充电头299+钢化膜199+手机壳199+C50i399</option>
+          <option value="pkgC50i_299">45W充电头299+钢化膜199+手机壳299+C50i399</option>
         </select>
       </div>
       <div class="s60-result-card" id="s60ResultCard">
@@ -590,7 +592,7 @@ body {
           <span class="s60-result-value discount" id="s60Discount">-</span>
         </div>
         <div class="s60-result-item">
-          <span class="s60-result-label">对应钢化膜单价</span>
+          <span class="s60-result-label">对应钢化膜/镜头膜单价</span>
           <span class="s60-result-value highlight" id="s60Glass">-</span>
         </div>
       </div>
@@ -1173,8 +1175,8 @@ document.addEventListener('DOMContentLoaded', () => {
 <script>
 (function() {
   const rawData = {
-    "apple17_512":{ name:"苹果 17 512G", money:7999, platform:7199.1, pos:799.9, pkgACS:{discount:7.3,glass:145.09}, pkgC50i_199:{discount:7.72,glass:153.73}, pkgC50i_299:{discount:7.04,glass:140.24}, pkgACS_299:{discount:6.68,glass:133.91} },
-    "appleAir_512":{ name:"苹果 Air 512G", money:7999, platform:7199.1, pos:799.9, pkgACS:{discount:7.3,glass:145.09}, pkgC50i_199:{discount:7.72,glass:153.73}, pkgC50i_299:{discount:7.04,glass:140.24}, pkgACS_299:{discount:6.68,glass:133.91} },
+    "apple17_512":{ name:"苹果 17 512G", money:7999, platform:7199.1, pos:799.9, pkgJTM:{discount:9.46,glass:140.55}, pkgJTM299:{discount:8.46,glass:125.65}, pkgACS:{discount:7.3,glass:145.09}, pkgC50i_199:{discount:7.72,glass:153.73}, pkgC50i_299:{discount:7.04,glass:140.24}, pkgACS_299:{discount:6.68,glass:133.91} },
+    "appleAir_512":{ name:"苹果 Air 512G", money:7999, platform:7199.1, pos:799.9, pkgJTM:{discount:9.46,glass:140.55}, pkgJTM299:{discount:8.46,glass:125.65}, pkgACS:{discount:7.3,glass:145.09}, pkgC50i_199:{discount:7.72,glass:153.73}, pkgC50i_299:{discount:7.04,glass:140.24}, pkgACS_299:{discount:6.68,glass:133.91} },
     "apple17Pro_256":{ name:"苹果 17 Pro 256G", money:8399, platform:7559.1, pos:839.9, pkgACS:{discount:7.66,glass:152.81}, pkgC50i_199:{discount:8.10,glass:161.93}, pkgC50i_299:{discount:7.39,glass:147.46}, pkgACS_299:{discount:7.02,glass:140.00} },
     "apple17ProMax_256":{ name:"苹果 17 Pro Max 256G", money:9449, platform:8504.1, pos:944.9, pkgACS:{discount:8.62,glass:171.68}, pkgC50i_199:{discount:9.12,glass:181.55}, pkgC50i_299:{discount:8.31,glass:166.25}, pkgACS_299:{discount:7.90,glass:157.27} },
     "appleAir_1TB":{ name:"苹果 Air 1TB", money:9999, platform:8999.1, pos:999.9, pkgACS:{discount:9.12,glass:181.83}, pkgC50i_199:{discount:9.65,glass:192.18}, pkgC50i_299:{discount:8.80,glass:175.34}, pkgACS_299:{discount:8.36,glass:166.42} },
@@ -1199,9 +1201,11 @@ document.addEventListener('DOMContentLoaded', () => {
   selPackage.addEventListener('change', function() {
     const mid = selModel.value;
     const pid = this.value;
-    if (!mid || !pid) return;
+    if (!mid || !pid) { resultCard.classList.remove('show'); return; }
     const data = rawData[mid];
+    if (!data) return;
     const pack = data[pid];
+    if (!pack) { resultCard.classList.remove('show'); return; }
     document.getElementById('s60ModelResult').innerText = data.name;
     document.getElementById('s60Money').innerText = '¥' + data.money.toLocaleString();
     document.getElementById('s60Platform').innerText = '¥' + data.platform;
