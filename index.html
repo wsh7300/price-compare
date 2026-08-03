@@ -560,12 +560,6 @@ body {
         <label class="s60-label" for="s60Package">套餐情况</label>
         <select class="s60-select" id="s60Package" disabled>
           <option value="">请先选择机型</option>
-          <option value="pkgJTM">45W充电头299+199钢化膜+199手机壳+镜头膜149</option>
-          <option value="pkgJTM299">45W充电头299+199钢化膜+299手机壳+镜头膜149</option>
-          <option value="pkgACS">45W充电头299+钢化膜199+手机壳199+ACS399</option>
-          <option value="pkgACS_299">45W充电头299+钢化膜199+手机壳299+ACS399</option>
-          <option value="pkgC50i_199">45W充电头299+钢化膜199+手机壳199+C50i399</option>
-          <option value="pkgC50i_299">45W充电头299+钢化膜199+手机壳299+C50i399</option>
         </select>
       </div>
       <div class="s60-result-card" id="s60ResultCard">
@@ -575,21 +569,25 @@ body {
         </div>
         <div class="s60-section-title">💰 价格详情</div>
         <div class="s60-result-item">
-          <span class="s60-result-label">总支付</span>
+          <span class="s60-result-label">总付款</span>
           <span class="s60-result-value" id="s60Money">-</span>
         </div>
         <div class="s60-result-item">
-          <span class="s60-result-label">平台支付</span>
+          <span class="s60-result-label">平台付款</span>
           <span class="s60-result-value" id="s60Platform">-</span>
         </div>
         <div class="s60-result-item">
-          <span class="s60-result-label">POS 支付</span>
+          <span class="s60-result-label">POS 付款</span>
           <span class="s60-result-value" id="s60Pos">-</span>
         </div>
         <div class="s60-section-title">🎁 博远录单</div>
         <div class="s60-result-item">
           <span class="s60-result-label">配件折扣</span>
           <span class="s60-result-value discount" id="s60Discount">-</span>
+        </div>
+        <div class="s60-result-item" id="s60AcsRow" style="display:none;">
+          <span class="s60-result-label">对应ACS单价</span>
+          <span class="s60-result-value highlight" id="s60Acs">-</span>
         </div>
         <div class="s60-result-item">
           <span class="s60-result-label">对应钢化膜/镜头膜单价</span>
@@ -1187,31 +1185,62 @@ document.addEventListener('DOMContentLoaded', () => {
     "apple17ProMax_2TB":{ name:"苹果 17 Pro Max 2TB", money:17499, platform:16499, pos:1000, pkgACS:{discount:9.12,glass:181.93}, pkgC50i_199:{discount:9.65,glass:192.28}, pkgC50i_299:{discount:8.80,glass:175.44}, pkgACS_299:{discount:8.36,glass:166.52} }
   };
 
+  const packageOptionMap = {
+    pkgJTM: '45W 充电头299 +钢化膜199 +手机壳199+镜头膜149',
+    pkgJTM299: '45W 充电头299 +钢化膜199 +手机壳199+镜头膜149',
+    pkgACS: '45W 充电头299 +钢化膜199 +手机壳199+ACS399',
+    pkgACS_299: '45W 充电头299 +钢化膜199 +手机壳299+ACS399',
+    pkgC50i_199: '45W 充电头299 +钢化膜199 +手机壳199+C50i339',
+    pkgC50i_299: '45W 充电头299 +钢化膜199 +手机壳299+C50i339'
+  };
+
+  const fullPackageModels = ["apple17_512", "appleAir_512"];
+  const allPkgKeys = ["pkgJTM","pkgJTM299","pkgACS","pkgACS_299","pkgC50i_199","pkgC50i_299"];
+  const limitedPkgKeys = ["pkgACS","pkgACS_299","pkgC50i_199","pkgC50i_299"];
+
   const selModel = document.getElementById('s60Model');
   const selPackage = document.getElementById('s60Package');
   const resultCard = document.getElementById('s60ResultCard');
+  const acsRow = document.getElementById('s60AcsRow');
 
   selModel.addEventListener('change', function() {
     const mid = this.value;
     resultCard.classList.remove('show');
+    selPackage.innerHTML = '<option value="">请先选择机型</option>';
     selPackage.value = "";
-    selPackage.disabled = !mid;
+    if (!mid) { selPackage.disabled = true; return; }
+    selPackage.disabled = false;
+
+    const pkgList = fullPackageModels.indexOf(mid) >= 0 ? allPkgKeys : limitedPkgKeys;
+    pkgList.forEach(function(key) {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = packageOptionMap[key];
+      selPackage.appendChild(opt);
+    });
   });
 
   selPackage.addEventListener('change', function() {
     const mid = selModel.value;
     const pid = this.value;
-    if (!mid || !pid) { resultCard.classList.remove('show'); return; }
+    if (!mid || !pid) return;
     const data = rawData[mid];
-    if (!data) return;
     const pack = data[pid];
-    if (!pack) { resultCard.classList.remove('show'); return; }
     document.getElementById('s60ModelResult').innerText = data.name;
     document.getElementById('s60Money').innerText = '¥' + data.money.toLocaleString();
     document.getElementById('s60Platform').innerText = '¥' + data.platform;
     document.getElementById('s60Pos').innerText = '¥' + data.pos;
     document.getElementById('s60Discount').innerText = pack.discount;
     document.getElementById('s60Glass').innerText = '¥' + pack.glass;
+
+    if (pid === 'pkgACS' || pid === 'pkgACS_299') {
+      acsRow.style.display = 'flex';
+      const acsPrice = (399 * pack.discount / 10).toFixed(2);
+      document.getElementById('s60Acs').innerText = '¥' + acsPrice;
+    } else {
+      acsRow.style.display = 'none';
+    }
+
     resultCard.classList.add('show');
   });
 })();
