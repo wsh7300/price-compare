@@ -136,6 +136,10 @@ body {
 .legend-dot.save { background: var(--save-green); }
 
 .container {
+  /* ⚠️ width:100% 必须有：body 是 flex 列容器，而此处有 margin:0 auto，
+     交叉轴 auto margin 会覆盖默认的 stretch，导致容器收缩成 fit-content 并居中，
+     卡片就会被挤成一条窄栏（手机上尤其明显）。 */
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
   padding: 18px 24px 40px;
