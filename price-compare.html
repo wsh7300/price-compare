@@ -262,6 +262,32 @@ body {
   color: var(--text-secondary);
   margin-bottom: 12px;
 }
+/* 机型卡片内的内存/配置下拉框 */
+.mem-select {
+  width: 100%;
+  padding: 7px 30px 7px 10px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--text);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2386868b' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color 0.15s;
+}
+.mem-select:hover { border-color: var(--accent); }
+.mem-select:focus { outline: none; border-color: var(--accent); }
+.card-count-hint {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
 .prices {
   display: flex;
   flex-direction: column;
@@ -294,7 +320,7 @@ body {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.price-value.original { color: var(--price-gray); text-decoration: line-through; }
+.price-value.original { color: var(--price-gray); }
 .price-value.edu { color: var(--edu-tag); }
 .price-value.subsidy { color: var(--subsidy-tag); }
 .savings {
@@ -678,9 +704,27 @@ const SUBCATS = {
   Mac:   [{ key:'Neo', label:'Neo' }, { key:'Air', label:'Air', subs:[{key:'13inch',label:'13英寸'},{key:'15inch',label:'15英寸'}] }, { key:'Pro', label:'Pro', subs:[{key:'14inch',label:'14英寸'},{key:'16inch',label:'16英寸'}] }],
 };
 
+// ── 板块显示开关 ──
+// false = 首页暂时隐藏该板块（代码与数据完整保留，改回 true 即恢复，无需其它改动）
+const BOARD_VISIBLE = { price: true, subsidy: false, installment: true };
+
 // ── 默认数据 ──
 const DEFAULT_PRODUCTS = [
   // iPhone
+  // 注：iPhone 18 Pro / 18 Pro Max / Duo 为 2026-09 新增机型，原价为苹果中国官网国行定价。
+  //     iPhone 教育优惠差额 +0（无教育优惠）；三款原价均 > ¥6000 且非 Mac → 不享受国补（页面显示 —）
+  { id:"iphone18pro-256",   cat:"iPhone", subCat:"", name:"iPhone 18 Pro",     spec:"256GB", original:9999,  edu:9999,  subsidy:9999 },
+  { id:"iphone18pro-512",   cat:"iPhone", subCat:"", name:"iPhone 18 Pro",     spec:"512GB", original:11999, edu:11999, subsidy:11999 },
+  { id:"iphone18pro-1t",    cat:"iPhone", subCat:"", name:"iPhone 18 Pro",     spec:"1TB",   original:15499, edu:15499, subsidy:15499 },
+  { id:"iphone18pro-2t",    cat:"iPhone", subCat:"", name:"iPhone 18 Pro",     spec:"2TB",   original:20499, edu:20499, subsidy:20499 },
+  { id:"iphone18promax-256",cat:"iPhone", subCat:"", name:"iPhone 18 Pro Max", spec:"256GB", original:10999, edu:10999, subsidy:10999 },
+  { id:"iphone18promax-512",cat:"iPhone", subCat:"", name:"iPhone 18 Pro Max", spec:"512GB", original:12999, edu:12999, subsidy:12999 },
+  { id:"iphone18promax-1t", cat:"iPhone", subCat:"", name:"iPhone 18 Pro Max", spec:"1TB",   original:16499, edu:16499, subsidy:16499 },
+  { id:"iphone18promax-2t", cat:"iPhone", subCat:"", name:"iPhone 18 Pro Max", spec:"2TB",   original:21499, edu:21499, subsidy:21499 },
+  { id:"iphoneduo-256",     cat:"iPhone", subCat:"", name:"iPhone Duo",        spec:"256GB", original:15999, edu:15999, subsidy:15999 },
+  { id:"iphoneduo-512",     cat:"iPhone", subCat:"", name:"iPhone Duo",        spec:"512GB", original:17999, edu:17999, subsidy:17999 },
+  { id:"iphoneduo-1t",      cat:"iPhone", subCat:"", name:"iPhone Duo",        spec:"1TB",   original:21499, edu:21499, subsidy:21499 },
+  { id:"iphoneduo-2t",      cat:"iPhone", subCat:"", name:"iPhone Duo",        spec:"2TB",   original:26499, edu:26499, subsidy:26499 },
   { id:"iphone17", cat:"iPhone", subCat:"", name:"iPhone 17", spec:"256GB", original:5999, edu:5999, subsidy:5499 },
   // iPad 11
   { id:"ipad11-128", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 128GB", original:3799, edu:3599, subsidy:3099 },
@@ -891,6 +935,7 @@ function showPriceBoard() {
 }
 
 function showSubsidyBoard() {
+  if (!BOARD_VISIBLE.subsidy) return;   // 板块已隐藏，禁止进入（数据与代码仍在）
   clearSearch();
   currentBoard = 'subsidy';
   document.getElementById('boardView').classList.add('hidden');
@@ -1018,21 +1063,88 @@ function renderSubsubcat(products) {
   document.getElementById('backBtn').onclick = function() { showSubcat(activeCat); };
 }
 
-// ── 渲染产品列表 ──
-function applySort(list) {
+// ── 渲染产品列表（同一机型的多个内存/配置合并为一张卡，用下拉框切换）──
+const selectedSpec = {};   // 机型组 key → 选中的产品 id
+let lastGroups = [];       // 最近一次渲染的机型组，供下拉切换时查回
+
+function groupByModel(list) {
+  const map = new Map();
+  list.forEach(p => {
+    if (!map.has(p.name)) map.set(p.name, []);
+    map.get(p.name).push(p);
+  });
+  return Array.from(map.values());
+}
+
+function selectedOf(group) {
+  const want = selectedSpec[group[0].id];
+  return group.find(p => p.id === want) || group[0];
+}
+
+function sortGroups(groups) {
   const sort = document.getElementById('sortBy').value;
+  const cur = g => selectedOf(g);
   switch (sort) {
-    case 'edu-save':     list.sort((a,b) => calcEduSave(b) - calcEduSave(a)); break;
-    case 'subsidy-save': list.sort((a,b) => calcSubsidySave(b) - calcSubsidySave(a)); break;
-    case 'price-asc':    list.sort((a,b) => a.original - b.original); break;
-    case 'price-desc':   list.sort((a,b) => b.original - a.original); break;
+    case 'edu-save':     groups.sort((a,b) => calcEduSave(cur(b)) - calcEduSave(cur(a))); break;
+    case 'subsidy-save': groups.sort((a,b) => calcSubsidySave(cur(b)) - calcSubsidySave(cur(a))); break;
+    case 'price-asc':    groups.sort((a,b) => cur(a).original - cur(b).original); break;
+    case 'price-desc':   groups.sort((a,b) => cur(b).original - cur(a).original); break;
   }
-  return list;
+  return groups;
+}
+
+function categoryLabelOf(p) {
+  return p.subSubCat ? p.cat + ' · ' + p.subCat + ' ' + p.subSubCat.replace('inch','英寸')
+       : p.subCat ? p.cat + ' · ' + p.subCat : p.cat;
+}
+
+// 价格区（三行价格 + 省额标签）；下拉切换时只重绘这一块
+function priceSectionHTML(p) {
+  const eduOn = document.getElementById('eduToggle').checked;
+  const es = calcEduSave(p);
+  const ss = calcSubsidySave(p);
+  const hasEduBonus = eduOn && es > 0;
+  const subSave = eduOn ? (p.edu - p.subsidy) : (p.original - calcOnlySubsidy(p));
+  const hasSubsidyBonus = (p.cat === "Mac" || p.original <= 6000) && subSave > 0;
+  const isDouble = hasEduBonus && hasSubsidyBonus;
+  const ts = calcTotalSave(p);
+
+  return '<div class="prices">' +
+      '<div class="price-row"><span class="price-label"><span class="tag original">原价</span></span><span class="price-value original">¥' + fmt(p.original) + '</span></div>' +
+      '<div class="price-row"><span class="price-label"><span class="tag edu">教育优惠</span></span><span class="price-value edu">' + (p.edu === p.original || !eduOn ? '无' : '¥' + fmt(p.edu)) + '</span></div>' +
+      '<div class="price-row"><span class="price-label"><span class="tag subsidy">' + (eduOn ? '叠加国补' : '国补') + '</span></span><span class="price-value subsidy">' + (p.original > 6000 && p.cat !== "Mac" ? '—' : '¥' + (eduOn ? fmt(p.subsidy) : fmt(calcOnlySubsidy(p)))) + '</span></div>' +
+    '</div>' +
+    '<div class="savings">' +
+      (hasEduBonus ? '<span class="save-badge"><span class="save-arrow">↓</span> 教育优惠省 ¥' + fmt(es) + '</span>' : '') +
+      (hasSubsidyBonus ? '<span class="save-badge' + (es > 0 && ss > es ? ' double' : '') + '"><span class="save-arrow">↓</span> 国补省 ¥' + fmt(subSave) + '</span>' : '') +
+      (isDouble && ts > Math.max(es, ss) ? '<span class="save-badge double"><span class="save-arrow">⬇</span> 叠加省 ¥' + fmt(ts) + '</span>' : '') +
+    '</div>';
+}
+
+function cardHTML(group) {
+  const p = selectedOf(group);
+  const gk = group[0].id;   // 组 key：该机型首个配置的 id（ASCII，可安全写入属性）
+  const specBlock = group.length > 1
+    ? '<select class="mem-select" data-group="' + gk + '" aria-label="选择内存/配置">' +
+        group.map(g => '<option value="' + g.id + '"' + (g.id === p.id ? ' selected' : '') + '>' + g.spec + '</option>').join('') +
+      '</select>'
+    : '<div class="card-spec">' + p.spec + '</div>';
+
+  return '<div class="card">' +
+    '<div class="card-header"><span class="card-category">' + categoryLabelOf(p) + '</span>' +
+      (group.length > 1 ? '<span class="card-count-hint">' + group.length + ' 个配置</span>' : '') +
+    '</div>' +
+    '<div class="card-name">' + p.name + '</div>' +
+    specBlock +
+    '<div class="card-prices">' + priceSectionHTML(p) + '</div>' +
+  '</div>';
 }
 
 function renderProductCards(list) {
   const grid = document.getElementById('productGrid');
-  document.getElementById('stats').textContent = '共 ' + list.length + ' 款';
+  const groups = sortGroups(groupByModel(list));
+  lastGroups = groups;
+  document.getElementById('stats').textContent = groups.length + ' 个机型 · ' + list.length + ' 个配置';
 
   if (!list.length) {
     grid.innerHTML = '<div class="empty">' +
@@ -1042,32 +1154,7 @@ function renderProductCards(list) {
     return;
   }
 
-  grid.innerHTML = list.map(p => {
-    const es = calcEduSave(p);
-    const ss = calcSubsidySave(p);
-    const eduOn = document.getElementById('eduToggle').checked;
-    const hasEduBonus = eduOn && es > 0;
-    const subSave = eduOn ? (p.edu - p.subsidy) : (p.original - calcOnlySubsidy(p));
-    const hasSubsidyBonus = (p.cat === "Mac" || p.original <= 6000) && subSave > 0;
-    const isDouble = hasEduBonus && hasSubsidyBonus;
-    const ts = calcTotalSave(p);
-
-    return '<div class="card">' +
-      '<div class="card-header"><span class="card-category">' + (p.subSubCat ? p.cat + ' · ' + p.subCat + ' ' + p.subSubCat.replace('inch','英寸') : p.subCat ? p.cat + ' · ' + p.subCat : p.cat) + '</span></div>' +
-      '<div class="card-name">' + p.name + '</div>' +
-      '<div class="card-spec">' + p.spec + '</div>' +
-      '<div class="prices">' +
-        '<div class="price-row"><span class="price-label"><span class="tag original">原价</span></span><span class="price-value original">¥' + fmt(p.original) + '</span></div>' +
-        '<div class="price-row"><span class="price-label"><span class="tag edu">教育优惠</span></span><span class="price-value edu">' + (p.edu === p.original || !eduOn ? '无' : '¥' + fmt(p.edu)) + '</span></div>' +
-        '<div class="price-row"><span class="price-label"><span class="tag subsidy">' + (eduOn ? '叠加国补' : '国补') + '</span></span><span class="price-value subsidy">' + (p.original > 6000 && p.cat !== "Mac" ? '—' : '¥' + (eduOn ? fmt(p.subsidy) : fmt(calcOnlySubsidy(p)))) + '</span></div>' +
-      '</div>' +
-      '<div class="savings">' +
-        (hasEduBonus ? '<span class="save-badge"><span class="save-arrow">↓</span> 教育优惠省 ¥' + fmt(es) + '</span>' : '') +
-        (hasSubsidyBonus ? '<span class="save-badge' + (es > 0 && ss > es ? ' double' : '') + '"><span class="save-arrow">↓</span> 国补省 ¥' + fmt(subSave) + '</span>' : '') +
-        (isDouble && ts > Math.max(es, ss) ? '<span class="save-badge double"><span class="save-arrow">⬇</span> 叠加省 ¥' + fmt(ts) + '</span>' : '') +
-      '</div>' +
-    '</div>';
-  }).join('');
+  grid.innerHTML = groups.map(cardHTML).join('');
 }
 
 function renderProducts(products) {
@@ -1077,7 +1164,7 @@ function renderProducts(products) {
   if (activeSubCat) list = list.filter(p => p.subCat === activeSubCat);
   if (activeSubSubCat) list = list.filter(p => p.subSubCat === activeSubSubCat);
   if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || p.spec.toLowerCase().includes(q));
-  renderProductCards(applySort(list));
+  renderProductCards(list);
   document.getElementById('backTitle').textContent = (activeSubCat ? activeCat + ' · ' + activeSubCat : activeCat);
   document.getElementById('backBtn').onclick = goBack;
 }
@@ -1091,7 +1178,13 @@ function renderGlobalSearch() {
     p.cat.toLowerCase().includes(q) ||
     (p.subCat || '').toLowerCase().includes(q)
   );
-  renderProductCards(applySort(list));
+  // 若关键词命中的是某个具体配置（如 "1TB"），自动把该配置选中
+  groupByModel(list).forEach(g => {
+    if (g.length < 2) return;
+    const hit = g.find(p => p.spec.toLowerCase().includes(q));
+    if (hit) selectedSpec[g[0].id] = hit.id;
+  });
+  renderProductCards(list);
 }
 
 function enterGlobalSearch() {
@@ -1139,6 +1232,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved === 'off') eduToggle.checked = false;
   } catch {}
   showBoardHome();
+  // 按板块开关隐藏首页入口卡片（用内联样式，避免被 .board-card 的 display:flex 覆盖）
+  ['price', 'subsidy', 'installment'].forEach(k => {
+    if (BOARD_VISIBLE[k]) return;
+    const el = document.getElementById('go' + k.charAt(0).toUpperCase() + k.slice(1) + 'Board');
+    if (el) el.style.display = 'none';
+  });
   document.getElementById('goPriceBoard').addEventListener('click', showPriceBoard);
   document.getElementById('goSubsidyBoard').addEventListener('click', showSubsidyBoard);
   document.getElementById('goInstallmentBoard').addEventListener('click', showInstallmentBoard);
@@ -1166,6 +1265,18 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (currentView === 'home') renderHome();
     else if (currentView === 'subcat') renderSubcat(loadProducts());
     else renderProducts(loadProducts());
+  });
+  // 机型卡片内的内存/配置下拉切换：只重绘该卡片的价格区，不重排整页
+  document.getElementById('productGrid').addEventListener('change', function(e) {
+    const sel = e.target.closest ? e.target.closest('.mem-select') : null;
+    if (!sel) return;
+    const gk = sel.getAttribute('data-group');
+    selectedSpec[gk] = sel.value;
+    const group = lastGroups.find(g => g[0].id === gk);
+    if (!group) return;
+    const card = sel.closest('.card');
+    const box = card && card.querySelector('.card-prices');
+    if (box) box.innerHTML = priceSectionHTML(selectedOf(group));
   });
 });
 </script>
