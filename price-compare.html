@@ -674,7 +674,7 @@ const MAIN_CATS = [
 // ── 子分类配置 ──
 const SUBCATS = {
   iPad:  [{ key:'11', label:'11' }, { key:'Mini', label:'Mini' }, { key:'Air', label:'Air', subs:[{key:'11inch',label:'11英寸'},{key:'13inch',label:'13英寸'}] }, { key:'Pro', label:'Pro', subs:[{key:'11inch',label:'11英寸'},{key:'13inch',label:'13英寸'}] }],
-  Watch: [{ key:'S11', label:'S11' }, { key:'SE', label:'SE' }],
+  Watch: [{ key:'S12', label:'S12' }, { key:'SE', label:'SE' }],
   Mac:   [{ key:'Neo', label:'Neo' }, { key:'Air', label:'Air', subs:[{key:'13inch',label:'13英寸'},{key:'15inch',label:'15英寸'}] }, { key:'Pro', label:'Pro', subs:[{key:'14inch',label:'14英寸'},{key:'16inch',label:'16英寸'}] }],
 };
 
@@ -710,11 +710,11 @@ const DEFAULT_PRODUCTS = [
   { id:"ipadpro-13-512", cat:"iPad", subCat:"Pro", subSubCat:"13inch", name:"iPad Pro 13″ M5", spec:"512GB", original:14999, edu:14099, subsidy:14099 },
   { id:"ipadpro-13-1t", cat:"iPad", subCat:"Pro", subSubCat:"13inch", name:"iPad Pro 13″ M5", spec:"1TB", original:18399, edu:17499, subsidy:17499 },
   { id:"ipadpro-13-2t", cat:"iPad", subCat:"Pro", subSubCat:"13inch", name:"iPad Pro 13″ M5", spec:"2TB", original:22599, edu:21699, subsidy:21699 },
-  // Watch S11
-  { id:"aw-s11-42", cat:"Watch", subCat:"S11", name:"Apple Watch S11 42mm", spec:"GPS版", original:2499, edu:2199, subsidy:1869.15 },
-  { id:"aw-s11-42-cell", cat:"Watch", subCat:"S11", name:"Apple Watch S11 42mm", spec:"GPS+蜂窝", original:3299, edu:2899, subsidy:2464.15 },
-  { id:"aw-s11-46", cat:"Watch", subCat:"S11", name:"Apple Watch S11 46mm", spec:"GPS版", original:2699, edu:2399, subsidy:2039.15 },
-  { id:"aw-s11-46-cell", cat:"Watch", subCat:"S11", name:"Apple Watch S11 46mm", spec:"GPS+蜂窝", original:3499, edu:3099, subsidy:2634.15 },
+  // Watch S12
+  { id:"aw-s12-42", cat:"Watch", subCat:"S12", name:"Apple Watch S12 42mm", spec:"GPS版", original:2999, edu:2699, subsidy:2294.15 },
+  { id:"aw-s12-42-cell", cat:"Watch", subCat:"S12", name:"Apple Watch S12 42mm", spec:"GPS+蜂窝", original:3799, edu:3399, subsidy:2899 },
+  { id:"aw-s12-46", cat:"Watch", subCat:"S12", name:"Apple Watch S12 46mm", spec:"GPS版", original:3199, edu:2899, subsidy:2464.15 },
+  { id:"aw-s12-46-cell", cat:"Watch", subCat:"S12", name:"Apple Watch S12 46mm", spec:"GPS+蜂窝", original:3999, edu:3599, subsidy:3099 },
   // Watch SE
   { id:"aw-se2-40", cat:"Watch", subCat:"SE", name:"Apple Watch SE 2 40mm", spec:"GPS版", original:1999, edu:1799, subsidy:1529.15 },
   { id:"aw-se2-40-cell", cat:"Watch", subCat:"SE", name:"Apple Watch SE 2 40mm", spec:"GPS+蜂窝", original:2399, edu:2199, subsidy:1869.15 },
@@ -745,9 +745,10 @@ const DEFAULT_PRODUCTS = [
 // ── 辅助 ──
 function calcOnlySubsidy(p) {
   if (p.original > 6000 && p.cat !== "Mac") return p.original;
-  const cap = p.cat === "Mac" ? 1500 : 500;
-  const amt = Math.min(p.original * 0.15, cap);
-  return Math.floor((p.original - amt) * 100) / 100;
+  // 整数「分」运算，避免浮点误差（例：5499*0.15 在浮点下会少算 1 分，显示 4674.14）
+  const capCents = (p.cat === "Mac" ? 1500 : 500) * 100;
+  const cents = Math.round(p.original * 100) - Math.min(Math.round(p.original * 15), capCents);
+  return cents / 100;
 }
 function fmt(v) {
   if (v === Math.floor(v)) return v.toLocaleString();
