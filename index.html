@@ -293,6 +293,11 @@ body {
   flex-direction: column;
   gap: 7px;
 }
+/* 教育优惠与国补都不适用时的合并说明（替代两行"无 / —"） */
+.price-note {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
 .price-row {
   display: flex;
   justify-content: space-between;
@@ -378,8 +383,24 @@ body {
   .cat-card { padding: 22px 16px; }
   .cat-icon { font-size: 2rem; }
   .subcat-grid { grid-template-columns: 1fr 1fr; }
-  .grid { grid-template-columns: 1fr; }
-  .card { padding: 13px; }
+
+  /* 手机端：双列紧凑卡片。minmax 下限 146px —— 常见屏宽排 2 列，极窄屏自动退回 1 列 */
+  .grid { grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); gap: 8px; }
+  .grid > .card { width: 100%; box-sizing: border-box; }
+  .card { padding: 10px 11px; }
+  .card-header { margin-bottom: 5px; }
+  .card-category { font-size: 0.6rem; padding: 1px 6px; }
+  .card-count-hint { font-size: 0.6rem; }
+  .card-name { font-size: 0.82rem; line-height: 1.25; margin-bottom: 4px; }
+  .card-spec { font-size: 0.7rem; margin-bottom: 7px; }
+  .mem-select { font-size: 0.72rem; padding: 4px 22px 4px 7px; margin-bottom: 7px; background-position: right 7px center; }
+  .prices { gap: 4px; }
+  .price-row { font-size: 0.72rem; }
+  .price-label { gap: 4px; }
+  .price-label .tag { font-size: 0.56rem; padding: 1px 5px; }
+  .price-note { font-size: 0.64rem; }
+  .savings { gap: 5px; margin-top: 6px; padding-top: 6px; }
+  .save-badge { font-size: 0.6rem; padding: 2px 6px; }
 }
 
 /* ── 首页板块选择 ── */
@@ -1109,19 +1130,28 @@ function priceSectionHTML(p) {
   const isDouble = hasEduBonus && hasSubsidyBonus;
   const ts = calcTotalSave(p);
 
-  return '<div class="prices">' +
-      '<div class="price-row"><span class="price-label"><span class="tag original">原价</span></span><span class="price-value original">¥' + fmt(p.original) + '</span></div>' +
+  // 教育优惠与国补都不适用时（如原价 > ¥6000 的 iPhone），把"无 / —"两行合并成一句，省一半高度
+  const noEdu = (p.edu === p.original);
+  const noSubsidy = (p.original > 6000 && p.cat !== "Mac");
+
+  const priceRows = (noEdu && noSubsidy)
+    ? '<div class="price-row"><span class="price-label"><span class="tag original">原价</span></span><span class="price-value original">¥' + fmt(p.original) + '</span></div>' +
+      '<div class="price-note">无教育优惠 · 不享受国补</div>'
+    : '<div class="price-row"><span class="price-label"><span class="tag original">原价</span></span><span class="price-value original">¥' + fmt(p.original) + '</span></div>' +
       '<div class="price-row"><span class="price-label"><span class="tag edu">教育优惠</span></span><span class="price-value edu">' + (p.edu === p.original || !eduOn ? '无' : '¥' + fmt(p.edu)) + '</span></div>' +
-      '<div class="price-row"><span class="price-label"><span class="tag subsidy">' + (eduOn ? '叠加国补' : '国补') + '</span></span><span class="price-value subsidy">' + (p.original > 6000 && p.cat !== "Mac" ? '—' : '¥' + (eduOn ? fmt(p.subsidy) : fmt(calcOnlySubsidy(p)))) + '</span></div>' +
-    '</div>' +
-    '<div class="savings">' +
+      '<div class="price-row"><span class="price-label"><span class="tag subsidy">' + (eduOn ? '叠加国补' : '国补') + '</span></span><span class="price-value subsidy">' + (p.original > 6000 && p.cat !== "Mac" ? '—' : '¥' + (eduOn ? fmt(p.subsidy) : fmt(calcOnlySubsidy(p)))) + '</span></div>';
+
+  // 没有省额标签时不再输出空的 .savings（否则会留一条多余的横线）
+  const badges =
       (hasEduBonus ? '<span class="save-badge"><span class="save-arrow">↓</span> 教育优惠省 ¥' + fmt(es) + '</span>' : '') +
       (hasSubsidyBonus ? '<span class="save-badge' + (es > 0 && ss > es ? ' double' : '') + '"><span class="save-arrow">↓</span> 国补省 ¥' + fmt(subSave) + '</span>' : '') +
-      (isDouble && ts > Math.max(es, ss) ? '<span class="save-badge double"><span class="save-arrow">⬇</span> 叠加省 ¥' + fmt(ts) + '</span>' : '') +
-    '</div>';
+      (isDouble && ts > Math.max(es, ss) ? '<span class="save-badge double"><span class="save-arrow">⬇</span> 叠加省 ¥' + fmt(ts) + '</span>' : '');
+
+  return '<div class="prices">' + priceRows + '</div>' +
+    (badges ? '<div class="savings">' + badges + '</div>' : '');
 }
 
-function cardHTML(group) {
+function cardHTML(group, showCat) {
   const p = selectedOf(group);
   const gk = group[0].id;   // 组 key：该机型首个配置的 id（ASCII，可安全写入属性）
   const specBlock = group.length > 1
@@ -1130,17 +1160,20 @@ function cardHTML(group) {
       '</select>'
     : '<div class="card-spec">' + p.spec + '</div>';
 
+  // 已在某个分类内部时不再重复显示分类标签（如 iPhone 分类里每张卡都写 iPhone），仅全局搜索时显示
+  const headParts =
+    (showCat ? '<span class="card-category">' + categoryLabelOf(p) + '</span>' : '') +
+    (group.length > 1 ? '<span class="card-count-hint">' + group.length + ' 个配置</span>' : '');
+
   return '<div class="card">' +
-    '<div class="card-header"><span class="card-category">' + categoryLabelOf(p) + '</span>' +
-      (group.length > 1 ? '<span class="card-count-hint">' + group.length + ' 个配置</span>' : '') +
-    '</div>' +
+    (headParts ? '<div class="card-header">' + headParts + '</div>' : '') +
     '<div class="card-name">' + p.name + '</div>' +
     specBlock +
     '<div class="card-prices">' + priceSectionHTML(p) + '</div>' +
   '</div>';
 }
 
-function renderProductCards(list) {
+function renderProductCards(list, showCat) {
   const grid = document.getElementById('productGrid');
   const groups = sortGroups(groupByModel(list));
   lastGroups = groups;
@@ -1154,7 +1187,7 @@ function renderProductCards(list) {
     return;
   }
 
-  grid.innerHTML = groups.map(cardHTML).join('');
+  grid.innerHTML = groups.map(g => cardHTML(g, showCat)).join('');
 }
 
 function renderProducts(products) {
@@ -1164,7 +1197,7 @@ function renderProducts(products) {
   if (activeSubCat) list = list.filter(p => p.subCat === activeSubCat);
   if (activeSubSubCat) list = list.filter(p => p.subSubCat === activeSubSubCat);
   if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || p.spec.toLowerCase().includes(q));
-  renderProductCards(list);
+  renderProductCards(list, false);   // 分类视图内不重复显示分类标签
   document.getElementById('backTitle').textContent = (activeSubCat ? activeCat + ' · ' + activeSubCat : activeCat);
   document.getElementById('backBtn').onclick = goBack;
 }
@@ -1184,7 +1217,7 @@ function renderGlobalSearch() {
     const hit = g.find(p => p.spec.toLowerCase().includes(q));
     if (hit) selectedSpec[g[0].id] = hit.id;
   });
-  renderProductCards(list);
+  renderProductCards(list, true);    // 全局搜索结果显示分类标签（便于区分来源）
 }
 
 function enterGlobalSearch() {
