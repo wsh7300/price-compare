@@ -756,19 +756,22 @@ const DEFAULT_PRODUCTS = [
   { id:"ipad11-256", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 256GB", original:4799, edu:4599, subsidy:4099 },
   { id:"ipad11-512", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 512GB", original:5999, edu:5799, subsidy:5299 },
   // iPad Mini
-  { id:"ipadmini-128", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"128GB", original:4349, edu:3949, subsidy:3449 },
-  { id:"ipadmini-256", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"256GB", original:4849, edu:4449, subsidy:3949 },
-  { id:"ipadmini-512", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"512GB", original:6549, edu:6149, subsidy:6149 },
+  // 注：2026-09-30 iPad Air（11″/13″）与 iPad mini 原价统一 +450。
+  //     教育价按固定差额（Air 128/256/512 −400、1TB −800；mini 全档 −400）同幅 +450；
+  //     国补按 15% 公式重算（mini 128/256 与 Air 11″ 128 触 500 封顶；原价 >¥6000 的仍不享受国补，页面显示 —）。
+  { id:"ipadmini-128", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"128GB", original:4799, edu:4399, subsidy:3899 },
+  { id:"ipadmini-256", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"256GB", original:5299, edu:4899, subsidy:4399 },
+  { id:"ipadmini-512", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"512GB", original:6999, edu:6599, subsidy:6599 },
   // iPad Air 11"
-  { id:"ipadair-11-128", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"128GB", original:5549, edu:5149, subsidy:4649 },
-  { id:"ipadair-11-256", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"256GB", original:6049, edu:5649, subsidy:5649 },
-  { id:"ipadair-11-512", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"512GB", original:7749, edu:7349, subsidy:7349 },
-  { id:"ipadair-11-1t", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"1TB", original:10249, edu:9449, subsidy:9449 },
+  { id:"ipadair-11-128", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"128GB", original:5999, edu:5599, subsidy:5099 },
+  { id:"ipadair-11-256", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"256GB", original:6499, edu:6099, subsidy:6099 },
+  { id:"ipadair-11-512", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"512GB", original:8199, edu:7799, subsidy:7799 },
+  { id:"ipadair-11-1t", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"1TB", original:10699, edu:9899, subsidy:9899 },
   // iPad Air 13"
-  { id:"ipadair-13-128", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M4", spec:"128GB", original:7249, edu:6849, subsidy:6849 },
-  { id:"ipadair-13-256", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M4", spec:"256GB", original:7749, edu:7349, subsidy:7349 },
-  { id:"ipadair-13-512", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M4", spec:"512GB", original:9449, edu:9049, subsidy:9049 },
-  { id:"ipadair-13-1t", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M4", spec:"1TB", original:11949, edu:11149, subsidy:11149 },
+  { id:"ipadair-13-128", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M4", spec:"128GB", original:7699, edu:7299, subsidy:7299 },
+  { id:"ipadair-13-256", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M4", spec:"256GB", original:8199, edu:7799, subsidy:7799 },
+  { id:"ipadair-13-512", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M4", spec:"512GB", original:9899, edu:9499, subsidy:9499 },
+  { id:"ipadair-13-1t", cat:"iPad", subCat:"Air", subSubCat:"13inch", name:"iPad Air 13″ M4", spec:"1TB", original:12399, edu:11599, subsidy:11599 },
   // iPad Pro 11"
   { id:"ipadpro-11-256", cat:"iPad", subCat:"Pro", subSubCat:"11inch", name:"iPad Pro 11″ M5", spec:"256GB", original:10799, edu:9899, subsidy:9899 },
   { id:"ipadpro-11-512", cat:"iPad", subCat:"Pro", subSubCat:"11inch", name:"iPad Pro 11″ M5", spec:"512GB", original:12499, edu:11599, subsidy:11599 },
@@ -828,7 +831,7 @@ function calcSubsidySave(p) { return p.original - p.subsidy; }
 function calcTotalSave(p) { return p.original - p.subsidy; }
 
 // ── 持久化 ──
-const STORAGE_KEY = 'price_compare_products_v1';
+const STORAGE_KEY = 'price_compare_products_v2';   // 升版会丢弃旧快照，使页面直接采用最新 DEFAULT_PRODUCTS
 function loadProducts() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
