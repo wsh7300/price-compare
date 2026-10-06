@@ -753,7 +753,7 @@ const DEFAULT_PRODUCTS = [
   { id:"iphone17", cat:"iPhone", subCat:"", name:"iPhone 17", spec:"256GB", original:5999, edu:5999, subsidy:5499 },
   // iPad 11
   { id:"ipad11-128", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 128GB", original:3799, edu:3599, subsidy:3099 },
-  { id:"ipad11-256", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 256GB", original:4799, edu:4599, subsidy:4099 },
+  { id:"ipad11-256", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 256GB", original:4299, edu:4099, subsidy:3599 },
   { id:"ipad11-512", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 512GB", original:5999, edu:5799, subsidy:5299 },
   // iPad Mini
   // 注：2026-09-30 iPad Air（11″/13″）与 iPad mini 原价统一 +450。
@@ -831,7 +831,7 @@ function calcSubsidySave(p) { return p.original - p.subsidy; }
 function calcTotalSave(p) { return p.original - p.subsidy; }
 
 // ── 持久化 ──
-const STORAGE_KEY = 'price_compare_products_v2';   // 升版会丢弃旧快照，使页面直接采用最新 DEFAULT_PRODUCTS
+const STORAGE_KEY = 'price_compare_products_v3';   // 升版会丢弃旧快照，使页面直接采用最新 DEFAULT_PRODUCTS
 function loadProducts() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
