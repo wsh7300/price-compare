@@ -135,6 +135,60 @@ body {
 .legend-dot.subsidy { background: var(--subsidy-tag); }
 .legend-dot.save { background: var(--save-green); }
 
+/* ── 教育优惠开关（iOS 风格）──
+   ⚠️ 这段样式以前完全缺失：HTML 用了 label.switch > input + span.slider 的结构，
+   但没有对应 CSS，结果渲染成一个约 13px 的原生 checkbox + 一个空的不可见 span，
+   点击区域极小、也不像开关，用户会以为「按钮没反应」。切勿删除。 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 23px;
+  flex-shrink: 0;
+  cursor: pointer;
+  vertical-align: middle;
+  -webkit-tap-highlight-color: transparent;
+}
+.switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;           /* 隐藏原生控件，但保留整块 42×23 的可点击区域 */
+  cursor: pointer;
+  z-index: 2;
+}
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #d1d1d6;
+  border-radius: 999px;
+  transition: background 0.18s ease;
+}
+.slider::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 19px;
+  height: 19px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,.28);
+  transition: transform 0.18s ease;
+}
+.switch input:checked + .slider { background: var(--edu-tag); }
+.switch input:checked + .slider::after { transform: translateX(19px); }
+.switch input:focus-visible + .slider { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (max-width: 600px) {
+  /* 手机端放大，保证足够大的可点区域 */
+  .switch { width: 46px; height: 26px; }
+  .slider::after { width: 22px; height: 22px; }
+  .switch input:checked + .slider::after { transform: translateX(20px); }
+}
+
 .container {
   /* ⚠️ width:100% 必须有：body 是 flex 列容器，而此处有 margin:0 auto，
      交叉轴 auto margin 会覆盖默认的 stretch，导致容器收缩成 fit-content 并居中，
@@ -543,10 +597,10 @@ body {
     <span class="back-title" id="backTitle"></span>
   </div>
   <div class="legend" id="legend">
-    <span class="legend-item"><span class="legend-dot edu"></span> 教育优惠价</span>
     <span class="legend-item">
-      <label class="switch" style="margin:0 2px">
-        <input type="checkbox" id="eduToggle" checked>
+      <span class="legend-dot edu"></span> 教育优惠价
+      <label class="switch" title="显示 / 隐藏教育优惠价">
+        <input type="checkbox" id="eduToggle" checked aria-label="显示教育优惠价">
         <span class="slider"></span>
       </label>
     </span>
@@ -793,8 +847,8 @@ const DEFAULT_PRODUCTS = [
   { id:"aw-se2-44", cat:"Watch", subCat:"SE", name:"Apple Watch SE 2 44mm", spec:"GPS版", original:2199, edu:1999, subsidy:1699.15 },
   { id:"aw-se2-44-cell", cat:"Watch", subCat:"SE", name:"Apple Watch SE 2 44mm", spec:"GPS+蜂窝", original:2599, edu:2399, subsidy:2039.15 },
   // Mac Neo
-  { id:"mac-neo-256", cat:"Mac", subCat:"Neo", name:"Mac Neo", spec:"256GB", original:5499, edu:4799, subsidy:4079.15 },
-  { id:"mac-neo-512", cat:"Mac", subCat:"Neo", name:"Mac Neo", spec:"512GB", original:6299, edu:5599, subsidy:4759.15 },
+  { id:"mac-neo-256", cat:"Mac", subCat:"Neo", name:"Mac Neo", spec:"256GB", original:5499, edu:5099, subsidy:4334.15 },
+  { id:"mac-neo-512", cat:"Mac", subCat:"Neo", name:"Mac Neo", spec:"512GB", original:6299, edu:5899, subsidy:5014.15 },
   // Mac Air 13"
   { id:"mba-13-512", cat:"Mac", subCat:"Air", subSubCat:"13inch", name:"MacBook Air 13″ M5", spec:"16+512GB", original:9999, edu:9249, subsidy:7861.65 },
   { id:"mba-13-1t", cat:"Mac", subCat:"Air", subSubCat:"13inch", name:"MacBook Air 13″ M5", spec:"16+1TB", original:12249, edu:11499, subsidy:9999 },
@@ -831,7 +885,7 @@ function calcSubsidySave(p) { return p.original - p.subsidy; }
 function calcTotalSave(p) { return p.original - p.subsidy; }
 
 // ── 持久化 ──
-const STORAGE_KEY = 'price_compare_products_v3';   // 升版会丢弃旧快照，使页面直接采用最新 DEFAULT_PRODUCTS
+const STORAGE_KEY = 'price_compare_products_v4';   // 升版会丢弃旧快照，使页面直接采用最新 DEFAULT_PRODUCTS
 function loadProducts() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -1301,10 +1355,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   eduToggle.addEventListener('change', function() {
     localStorage.setItem('edu_toggle', this.checked ? 'on' : 'off');
+    // legend（含本开关）只在「搜索结果」和「产品列表」视图可见；
+    // home / subcat / subsubcat 视图下 legend 是隐藏的，切换不影响可见内容，
+    // 因此这里不再调用 renderHome / renderSubcat（之前会渲染到隐藏容器里，属无效操作）。
     if (isSearching) renderGlobalSearch();
-    else if (currentView === 'home') renderHome();
-    else if (currentView === 'subcat') renderSubcat(loadProducts());
-    else renderProducts(loadProducts());
+    else if (currentView === 'products') renderProducts(loadProducts());
   });
   // 机型卡片内的内存/配置下拉切换：只重绘该卡片的价格区，不重排整页
   document.getElementById('productGrid').addEventListener('change', function(e) {
