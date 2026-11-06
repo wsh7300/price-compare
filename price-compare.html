@@ -809,14 +809,16 @@ const DEFAULT_PRODUCTS = [
   { id:"ipad11-128", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 128GB", original:3799, edu:3599, subsidy:3099 },
   { id:"ipad11-256", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 256GB", original:4299, edu:4099, subsidy:3599 },
   { id:"ipad11-512", cat:"iPad", subCat:"11", name:"iPad 11", spec:"A16 / 512GB", original:5999, edu:5799, subsidy:5299 },
-  // iPad Mini
-  // 注：2026-09-30 iPad Air（11″/13″）与 iPad mini 原价统一 +450。
-  //     教育价按固定差额（Air 128/256/512 −400、1TB −800；mini 全档 −400）同幅 +450；
-  //     国补按 15% 公式重算（mini 128/256 与 Air 11″ 128 触 500 封顶；原价 >¥6000 的仍不享受国补，页面显示 —）。
-  { id:"ipadmini-128", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"128GB", original:4799, edu:4399, subsidy:3899 },
-  { id:"ipadmini-256", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"256GB", original:5299, edu:4899, subsidy:4399 },
-  { id:"ipadmini-512", cat:"iPad", subCat:"Mini", name:"iPad mini A17 Pro", spec:"512GB", original:6999, edu:6599, subsidy:6599 },
-  // iPad Air 11"
+  // iPad Mini — 2026-11 新品上市：A17 Pro → A20 Pro（8.5 英寸），并新增 WLAN+蜂窝 版本
+  // 教育差额：128/256 −400、512 −800；国补 = 教育价 − min(教育价×15%, 500)，
+  // 非 Mac 且原价 >¥6000 不享受 → 6 款里只有 128GB WLAN 一档有国补
+  { id:"ipadmini-a20-128-wlan", cat:"iPad", subCat:"Mini", name:"iPad mini A20 Pro", spec:"128GB WLAN",     original:5499, edu:5099, subsidy:4599 },
+  { id:"ipadmini-a20-256-wlan", cat:"iPad", subCat:"Mini", name:"iPad mini A20 Pro", spec:"256GB WLAN",     original:6299, edu:5899, subsidy:5899 },
+  { id:"ipadmini-a20-512-wlan", cat:"iPad", subCat:"Mini", name:"iPad mini A20 Pro", spec:"512GB WLAN",     original:7999, edu:7199, subsidy:7199 },
+  { id:"ipadmini-a20-128-cell", cat:"iPad", subCat:"Mini", name:"iPad mini A20 Pro", spec:"128GB WLAN+蜂窝", original:6799, edu:6399, subsidy:6399 },
+  { id:"ipadmini-a20-256-cell", cat:"iPad", subCat:"Mini", name:"iPad mini A20 Pro", spec:"256GB WLAN+蜂窝", original:7599, edu:7199, subsidy:7199 },
+  { id:"ipadmini-a20-512-cell", cat:"iPad", subCat:"Mini", name:"iPad mini A20 Pro", spec:"512GB WLAN+蜂窝", original:9299, edu:8499, subsidy:8499 },
+  // iPad Air 11"（2026-09-30 曾全线原价 +450；教育差额 128/256/512 −400、1TB −800）
   { id:"ipadair-11-128", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"128GB", original:5999, edu:5599, subsidy:5099 },
   { id:"ipadair-11-256", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"256GB", original:6499, edu:6099, subsidy:6099 },
   { id:"ipadair-11-512", cat:"iPad", subCat:"Air", subSubCat:"11inch", name:"iPad Air 11″ M4", spec:"512GB", original:8199, edu:7799, subsidy:7799 },
@@ -857,15 +859,24 @@ const DEFAULT_PRODUCTS = [
   { id:"mba-15-512", cat:"Mac", subCat:"Air", subSubCat:"15inch", name:"MacBook Air 15″ M5", spec:"16+512GB", original:11999, edu:11249, subsidy:9749 },
   { id:"mba-15-1t", cat:"Mac", subCat:"Air", subSubCat:"15inch", name:"MacBook Air 15″ M5", spec:"16+1TB", original:14249, edu:13499, subsidy:11999 },
   { id:"mba-15-24", cat:"Mac", subCat:"Air", subSubCat:"15inch", name:"MacBook Air 15″ M5", spec:"24+1TB", original:15749, edu:14999, subsidy:13499 },
-  // Mac Pro 14"
-    { id:"mbp-14-161tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ M5 Pro", spec:"16+1TB", original:15999, edu:15199, subsidy:13699 },
-    { id:"mbp-14-241tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ M5 Pro", spec:"24+1TB", original:17499, edu:16699, subsidy:15199 },
-    { id:"mbp-14-321tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ M5 Pro", spec:"32+1TB", original:18999, edu:18199, subsidy:16699 },
-  // Mac Pro 16"
-    { id:"mbp-16-m5pro-241tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Pro", spec:"24+1TB", original:24999, edu:23399, subsidy:21899 },
-    { id:"mbp-16-m5pro-481tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Pro", spec:"48+1TB", original:29499, edu:27899, subsidy:26399 },
-    { id:"mbp-16-m5max-362tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Max", spec:"36+2TB", original:35999, edu:33499, subsidy:31999 },
-    { id:"mbp-16-m5max-482tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Max", spec:"48+2TB", original:40999, edu:38499, subsidy:36999 },
+  // Mac Pro 14" — 2026-11 新品：M5 Pro 档位改名为 M6（三档价格不变）；另新增 PROLED XDR 4 款
+  { id:"mbp14-m6-161tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ M6", spec:"16+1TB", original:15999, edu:15199, subsidy:13699 },
+  { id:"mbp14-m6-241tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ M6", spec:"24+1TB", original:17499, edu:16699, subsidy:15199 },
+  { id:"mbp14-m6-321tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ M6", spec:"32+1TB", original:18999, edu:18199, subsidy:16699 },
+  // MacBook Pro 14" PROLED XDR（教育优惠按官方表原值，差额 1200 / 1250 / 2500 / 3450，因芯片核心数不同而不同）
+  { id:"mbp14-xdr-m5pro15-241tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ PROLED XDR", spec:"24+1TB · M5 Pro 15核", original:22999, edu:21799, subsidy:20299 },
+  { id:"mbp14-xdr-m5pro18-241tb", cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ PROLED XDR", spec:"24+1TB · M5 Pro 18核", original:25499, edu:24249, subsidy:22749 },
+  { id:"mbp14-xdr-m5max-362tb",   cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ PROLED XDR", spec:"36+2TB · M5 Max",      original:36999, edu:34499, subsidy:32999 },
+  { id:"mbp14-xdr-m5max-482tb",   cat:"Mac", subCat:"Pro", subSubCat:"14inch", name:"MacBook Pro 14″ PROLED XDR", spec:"48+2TB · M5 Max",      original:41999, edu:38549, subsidy:37049 },
+  // Mac Pro 16" —— 不带触屏（仍在售，勿删）：M5 Pro / M5 Max
+  { id:"mbp-16-m5pro-241tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Pro", spec:"24+1TB", original:24999, edu:23399, subsidy:21899 },
+  { id:"mbp-16-m5pro-481tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Pro", spec:"48+1TB", original:29499, edu:27899, subsidy:26399 },
+  { id:"mbp-16-m5max-362tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Max", spec:"36+2TB", original:35999, edu:33499, subsidy:31999 },
+  { id:"mbp-16-m5max-482tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ M5 Max", spec:"48+2TB", original:40999, edu:38499, subsidy:36999 },
+  // Mac Pro 16" —— 2026-11 新品：PROLED XDR（带触屏，独立产品线，与上面的非触屏款并存）
+  { id:"mbp16-xdr-m5pro-241tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ PROLED XDR", spec:"24+1TB · M5 Pro", original:27999, edu:26399, subsidy:24899 },
+  { id:"mbp16-xdr-m5max-362tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ PROLED XDR", spec:"36+2TB · M5 Max", original:38999, edu:36499, subsidy:34999 },
+  { id:"mbp16-xdr-m5max-482tb", cat:"Mac", subCat:"Pro", subSubCat:"16inch", name:"MacBook Pro 16″ PROLED XDR", spec:"48+2TB · M5 Max", original:43999, edu:41499, subsidy:39999 },
 ];
 
 // ── 辅助 ──
@@ -885,7 +896,7 @@ function calcSubsidySave(p) { return p.original - p.subsidy; }
 function calcTotalSave(p) { return p.original - p.subsidy; }
 
 // ── 持久化 ──
-const STORAGE_KEY = 'price_compare_products_v4';   // 升版会丢弃旧快照，使页面直接采用最新 DEFAULT_PRODUCTS
+const STORAGE_KEY = 'price_compare_products_v6';   // 升版会丢弃旧快照，使页面直接采用最新 DEFAULT_PRODUCTS
 function loadProducts() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
